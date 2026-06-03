@@ -2,18 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import { useCRMStore } from '@/store/crm-store';
-import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
-import { ScoreBadge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   Search,
   Brain,
-  Briefcase,
-  DollarSign,
-  Target,
-  Zap,
   X,
+  ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -34,21 +29,37 @@ interface LeadMemorySummary {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const MEMORY_META: Record<TargetMemoryType, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  business_type: { label: 'Business Type', icon: Briefcase,   color: 'text-blue-600',   bg: 'bg-blue-50'   },
-  budget:        { label: 'Budget',         icon: DollarSign,  color: 'text-emerald-600',bg: 'bg-emerald-50'},
-  intent:        { label: 'Intent',         icon: Target,      color: 'text-violet-600', bg: 'bg-violet-50' },
-  urgency:       { label: 'Urgency',        icon: Zap,         color: 'text-amber-600',  bg: 'bg-amber-50'  },
-};
-
-function getLatestValue(
-  rows: { memoryValue: string; lastUpdated: string }[]
-): string {
+function getLatestValue(rows: { memoryValue: string; lastUpdated: string }[]): string {
   if (!rows.length) return '';
   return rows
     .slice()
     .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())[0]
     .memoryValue;
+}
+
+/** Convert snake_case or raw strings into Title Case */
+function humanize(value: string): string {
+  if (!value) return '';
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/** Score → gradient color class */
+function scoreColor(score: number): string {
+  if (score >= 8) return 'from-emerald-500 to-teal-500';
+  if (score >= 5) return 'from-amber-400 to-orange-400';
+  return 'from-rose-400 to-red-400';
+}
+
+/** Urgency color config */
+function urgencyConfig(value: string): { bg: string; text: string; dot: string } {
+  const v = value.toLowerCase();
+  if (v === 'urgent' || v === 'high')
+    return { bg: 'bg-rose-50', text: 'text-rose-600', dot: 'bg-rose-500' };
+  if (v === 'medium')
+    return { bg: 'bg-amber-50', text: 'text-amber-600', dot: 'bg-amber-400' };
+  return { bg: 'bg-slate-100', text: 'text-slate-500', dot: 'bg-slate-400' };
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -57,16 +68,13 @@ export default function AIMemoryPage() {
   const { memories, leads } = useCRMStore();
   const [search, setSearch] = useState('');
 
-  // Build leads map for O(1) lookup
   const leadsMap = useMemo(() => {
     const map: Record<string, typeof leads[0]> = {};
     leads.forEach(l => { map[l.id] = l; });
     return map;
   }, [leads]);
 
-  // Group memories by leadId, then pick the latest value per target type
   const summaries: LeadMemorySummary[] = useMemo(() => {
-    // Group all raw memory rows by leadId
     const byLead: Record<string, typeof memories> = {};
     memories.forEach(m => {
       if (!m.leadId) return;
@@ -76,24 +84,12 @@ export default function AIMemoryPage() {
 
     return Object.entries(byLead).map(([leadId, rows]) => {
       const lead = leadsMap[leadId];
-      const leadName = lead?.fullName || leadId;
-      const leadScore = lead?.leadScore ?? 0;
-      const businessTypeFromLead = lead?.businessType || '';
-      const sourceFromLead = lead?.source || '';
-
-      // For each target type, find all rows of that type, pick latest value
       const resolvedMemories: Partial<Record<TargetMemoryType, string>> = {};
       TARGET_MEMORY_TYPES.forEach(type => {
-        const matching = rows.filter(r => {
-          const t = (r.memoryType || '').toLowerCase().trim();
-          return t === type;
-        });
-        if (matching.length > 0) {
-          resolvedMemories[type] = getLatestValue(matching);
-        }
+        const matching = rows.filter(r => (r.memoryType || '').toLowerCase().trim() === type);
+        if (matching.length > 0) resolvedMemories[type] = getLatestValue(matching);
       });
 
-      // Latest timestamp across all rows
       const lastUpdated = rows
         .map(r => r.lastUpdated || '')
         .filter(Boolean)
@@ -101,19 +97,16 @@ export default function AIMemoryPage() {
 
       return {
         leadId,
-        leadName,
-        leadScore,
-        businessTypeFromLead,
-        sourceFromLead,
+        leadName: lead?.fullName || leadId,
+        leadScore: lead?.leadScore ?? 0,
+        businessTypeFromLead: lead?.businessType || '',
+        sourceFromLead: lead?.source || '',
         memories: resolvedMemories,
         lastUpdated,
       };
-    })
-    // Sort by lead score descending
-    .sort((a, b) => b.leadScore - a.leadScore);
+    }).sort((a, b) => b.leadScore - a.leadScore);
   }, [memories, leadsMap]);
 
-  // Apply search filter
   const filtered = useMemo(() => {
     if (!search.trim()) return summaries;
     const q = search.toLowerCase();
@@ -128,141 +121,157 @@ export default function AIMemoryPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Toolbar */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between relative z-10">
+
+      {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         {/* Search */}
-        <div className="flex items-center w-full md:w-[360px] h-[42px] bg-white border border-slate-200/60 rounded-[12px] shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus-within:ring-2 focus-within:ring-[#2563EB]/20 focus-within:border-[#2563EB] transition-all overflow-hidden px-3.5">
-          <Search className="h-[18px] w-[18px] text-slate-400 shrink-0 mr-3" />
+        <div className="flex items-center w-full sm:w-[380px] h-[42px] bg-white border border-slate-200/70 rounded-[13px] shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all px-4 gap-3">
+          <Search className="h-4 w-4 text-slate-400 shrink-0" />
           <input
             type="text"
-            placeholder="Search by lead name, business type, intent…"
+            placeholder="Search lead, business type, intent…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full h-full bg-transparent border-none text-[13.5px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0 p-0"
+            className="w-full h-full bg-transparent text-[13.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="text-slate-400 hover:text-slate-600 ml-2 cursor-pointer">
-              <X className="h-4 w-4" />
+            <button onClick={() => setSearch('')} className="text-slate-400 hover:text-slate-600 cursor-pointer shrink-0">
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
 
-        {/* Summary pill */}
-        <div className="flex items-center gap-2 text-[13px] text-slate-500 font-medium bg-white border border-slate-200/60 rounded-[12px] px-4 py-2 shadow-sm">
-          <Brain className="h-4 w-4 text-[#2563EB]" />
-          <span><strong className="text-slate-900">{filtered.length}</strong> lead{filtered.length !== 1 ? 's' : ''} with AI memory</span>
+        {/* Pill */}
+        <div className="flex items-center gap-2 bg-white border border-slate-200/70 rounded-[12px] px-4 py-2 shadow-sm text-[13px] text-slate-500">
+          <Brain className="h-4 w-4 text-blue-500" />
+          <span><strong className="text-slate-800 font-semibold">{filtered.length}</strong> lead{filtered.length !== 1 ? 's' : ''} with AI memory</span>
         </div>
       </div>
 
-      {/* Cards Grid */}
+      {/* ── Grid ────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
         {filtered.length === 0 ? (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
-            <div className="h-16 w-16 bg-white border border-slate-200 shadow-sm rounded-full flex items-center justify-center mb-4">
+          <div className="col-span-full py-24 flex flex-col items-center justify-center text-center">
+            <div className="h-16 w-16 bg-white border border-slate-200 shadow-sm rounded-full flex items-center justify-center mb-5">
               <Brain className="h-8 w-8 text-slate-300" />
             </div>
             <p className="text-[15px] font-bold text-slate-900">No memory records found</p>
-            <p className="text-[13px] text-slate-500 mt-1 max-w-xs">
-              {search ? 'Try adjusting your search.' : 'AI memory records will appear here once leads interact.'}
+            <p className="text-[13px] text-slate-500 mt-1.5 max-w-xs">
+              {search ? 'Try a different search term.' : 'AI memory records will appear once leads engage.'}
             </p>
           </div>
         ) : (
           filtered.map(summary => {
-            const { leadId, leadName, leadScore, businessTypeFromLead, sourceFromLead, memories: mems } = summary;
-
-            // Display business type: prefer AI memory value, fallback to lead record
-            const displayBizType = mems.business_type || businessTypeFromLead;
+            const { leadId, leadName, leadScore, businessTypeFromLead, memories: mems } = summary;
+            const displayBizType = mems.business_type || businessTypeFromLead || '—';
+            const budget   = mems.budget   || null;
+            const intent   = mems.intent   || null;
+            const urgency  = mems.urgency  || null;
+            const urg      = urgency ? urgencyConfig(urgency) : null;
+            const gradient = scoreColor(leadScore);
 
             return (
-              <Card
+              <div
                 key={leadId}
-                padding="none"
-                className="flex flex-col overflow-hidden bg-white border border-slate-200/60 rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_16px_40px_-10px_rgba(0,0,0,0.09)] transition-all duration-300 hover:-translate-y-0.5 group"
+                className="group relative flex flex-col bg-white rounded-[22px] border border-slate-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
-                {/* ── Card Header ── */}
-                <div className="flex items-center gap-4 px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white">
-                  <Avatar name={leadName} className="h-12 w-12 shadow-sm font-bold shrink-0 text-[14px]" />
+                {/* Top accent strip */}
+                <div className={cn('h-[3px] w-full bg-gradient-to-r', gradient)} />
+
+                {/* ── Header ──────────────────────────────────────────────── */}
+                <div className="flex items-center gap-4 px-6 pt-5 pb-4">
+                  <Avatar name={leadName} className="h-12 w-12 text-[14px] font-bold shadow-md shrink-0" />
+
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 mb-1 flex-wrap">
-                      <Link
-                        href={`/dashboard/leads?id=${leadId}`}
-                        className="text-[16.5px] font-bold text-slate-900 tracking-tight leading-tight hover:text-[#2563EB] transition-colors truncate"
-                      >
-                        {leadName}
-                      </Link>
-                      <div className="flex items-center gap-1.5 bg-white border border-slate-200/80 px-2 py-0.5 rounded-[6px] shadow-sm shrink-0">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Score</span>
-                        <ScoreBadge score={leadScore} className="text-[12.5px]" />
-                      </div>
-                    </div>
-                    <p className="text-[12.5px] text-slate-500 font-medium truncate">
-                      {displayBizType || sourceFromLead || 'No industry specified'}
+                    <Link
+                      href={`/dashboard/leads?id=${leadId}`}
+                      className="block text-[16.5px] font-bold text-slate-900 tracking-tight leading-tight truncate hover:text-blue-600 transition-colors"
+                    >
+                      {leadName}
+                    </Link>
+                    <p className="text-[12.5px] text-slate-500 font-medium mt-0.5 truncate">
+                      {displayBizType}
                     </p>
+                  </div>
+
+                  {/* Score badge */}
+                  <div className={cn(
+                    'flex flex-col items-center justify-center h-12 w-12 rounded-[12px] bg-gradient-to-br shrink-0 shadow-sm',
+                    gradient
+                  )}>
+                    <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest leading-none">Score</span>
+                    <span className="text-[18px] font-black text-white leading-none mt-0.5">{leadScore}</span>
                   </div>
                 </div>
 
-                {/* ── Memory Fields ── */}
-                <div className="px-6 py-5 space-y-3 flex-1">
-                  {TARGET_MEMORY_TYPES.map(type => {
-                    const meta  = MEMORY_META[type];
-                    const value = type === 'business_type' ? displayBizType : mems[type];
-                    const Icon  = meta.icon;
-                    const isEmpty = !value;
+                {/* ── Divider ─────────────────────────────────────────────── */}
+                <div className="mx-6 h-px bg-slate-100" />
 
-                    return (
-                      <div
-                        key={type}
-                        className="flex items-center gap-3.5 p-3 rounded-[12px] bg-slate-50/60 border border-slate-100 hover:bg-slate-50 transition-colors"
-                      >
-                        {/* Icon */}
-                        <div className={cn('flex items-center justify-center h-8 w-8 rounded-[8px] shrink-0', meta.bg)}>
-                          <Icon className={cn('h-4 w-4', meta.color)} />
-                        </div>
+                {/* ── 2-Column Memory Grid ────────────────────────────────── */}
+                <div className="px-6 py-5 grid grid-cols-2 gap-x-5 gap-y-4 flex-1">
 
-                        {/* Label + Value */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-1">
-                            {meta.label}
-                          </p>
-                          <p className={cn(
-                            'text-[13.5px] font-semibold leading-snug truncate',
-                            isEmpty ? 'text-slate-300 italic' : 'text-slate-800'
-                          )}>
-                            {isEmpty ? 'Not Available' : value}
-                          </p>
-                        </div>
+                  {/* Business Type */}
+                  <div>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-slate-400 mb-1">Business Type</p>
+                    <p className="text-[14px] font-semibold text-slate-800 leading-snug truncate">{displayBizType}</p>
+                  </div>
 
-                        {/* Value badge for urgency */}
-                        {type === 'urgency' && value && (
-                          <span className={cn(
-                            'text-[11px] font-bold px-2 py-0.5 rounded-md border shrink-0',
-                            value.toLowerCase() === 'high' || value.toLowerCase() === 'urgent'
-                              ? 'bg-rose-50 text-rose-600 border-rose-100'
-                              : value.toLowerCase() === 'medium'
-                              ? 'bg-amber-50 text-amber-600 border-amber-100'
-                              : 'bg-slate-50 text-slate-500 border-slate-200'
-                          )}>
-                            {value}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {/* Budget */}
+                  <div>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-slate-400 mb-1">Budget</p>
+                    {budget ? (
+                      <p className="text-[14px] font-bold text-emerald-600 leading-snug">{budget}</p>
+                    ) : (
+                      <p className="text-[13px] text-slate-300 italic">Not Available</p>
+                    )}
+                  </div>
+
+                  {/* Intent */}
+                  <div>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Intent</p>
+                    {intent ? (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-[8px] bg-blue-50 border border-blue-100 text-blue-700 text-[12px] font-semibold leading-none">
+                        {humanize(intent)}
+                      </span>
+                    ) : (
+                      <p className="text-[13px] text-slate-300 italic">Not Available</p>
+                    )}
+                  </div>
+
+                  {/* Urgency */}
+                  <div>
+                    <p className="text-[10.5px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Urgency</p>
+                    {urgency && urg ? (
+                      <span className={cn(
+                        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] border text-[12px] font-semibold leading-none',
+                        urg.bg, urg.text,
+                        urg.bg === 'bg-rose-50' ? 'border-rose-100' :
+                        urg.bg === 'bg-amber-50' ? 'border-amber-100' : 'border-slate-200'
+                      )}>
+                        <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', urg.dot)} />
+                        {humanize(urgency)}
+                      </span>
+                    ) : (
+                      <p className="text-[13px] text-slate-300 italic">Not Available</p>
+                    )}
+                  </div>
                 </div>
 
-                {/* ── Card Footer ── */}
-                <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50/40 flex items-center justify-between">
-                  <span className="text-[11.5px] text-slate-400 font-medium">
-                    ID: <span className="font-mono text-slate-500">{leadId}</span>
+                {/* ── Footer ──────────────────────────────────────────────── */}
+                <div className="mx-6 h-px bg-slate-100" />
+                <div className="flex items-center justify-between px-6 py-3.5">
+                  <span className="text-[11px] text-slate-400 font-medium font-mono truncate max-w-[120px]">
+                    {leadId}
                   </span>
                   <Link
                     href={`/dashboard/conversations?leadId=${leadId}`}
-                    className="text-[12px] font-semibold text-[#2563EB] hover:text-blue-700 transition-colors"
+                    className="flex items-center gap-1 text-[12px] font-semibold text-blue-600 hover:text-blue-700 transition-colors group/link"
                   >
-                    View Conversations →
+                    View Conversation
+                    <ArrowRight className="h-3.5 w-3.5 group-hover/link:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
-              </Card>
+              </div>
             );
           })
         )}
