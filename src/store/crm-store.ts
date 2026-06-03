@@ -183,17 +183,63 @@ export const useCRMStore = create<CRMState>()(
       refreshData: async () => {
         set({ isRefreshing: true });
         try {
-          const res = await fetch("/api/refresh");
+          const state = get();
+          const { spreadsheetUrl, connected } = state.settings.googleSheets;
+
+          // If Google Sheets is not configured in Settings, skip silently
+          if (!connected || !spreadsheetUrl) {
+            console.info("Google Sheets not configured — using existing store data.");
+            set({ isRefreshing: false });
+            return;
+          }
+
+          // Get the current session token to authenticate the server request
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) {
+            console.warn("No active session — cannot refresh from Google Sheets.");
+            set({ isRefreshing: false });
+            return;
+          }
+
+          // Call the server-side refresh route with the auth token
+          // The server will use this token to securely look up the user's credentials
+          const res = await fetch("/api/refresh", {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+
           if (res.ok) {
             const data = await res.json();
-            if (data.leads) set({ leads: data.leads });
+
+            if (!data.success) {
+              // Server returned a handled error (not connected, bad credentials etc.)
+              console.warn("Google Sheets refresh:", data.message || data.error);
+              set({ isRefreshing: false });
+              return;
+            }
+
+            // Populate the store with live data from Google Sheets
+            if (data.leads)         set({ leads: data.leads });
             if (data.conversations) set({ conversations: data.conversations });
-            if (data.memories) set({ memories: data.memories });
-            if (data.appointments) set({ appointments: data.appointments });
-            if (data.followUps) set({ followUps: data.followUps });
-            const state = get();
+            if (data.memories)      set({ memories: data.memories });
+            if (data.appointments)  set({ appointments: data.appointments });
+            if (data.followUps)     set({ followUps: data.followUps });
+
+            const updated = get();
             set({
-              dashboardStats: calculateStats(state.leads, state.appointments, state.followUps),
+              dashboardStats: calculateStats(
+                updated.leads,
+                updated.appointments,
+                updated.followUps
+              ),
+              settings: {
+                ...updated.settings,
+                googleSheets: {
+                  ...updated.settings.googleSheets,
+                  lastSync: data.lastSync || new Date().toISOString(),
+                },
+              },
             });
           }
         } catch (error) {
