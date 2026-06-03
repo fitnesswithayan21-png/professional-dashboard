@@ -45,7 +45,10 @@ const mockTimelineEvents = [
 ];
 
 export default function ConversationsPage() {
-  const { conversations, leads, memories } = useCRMStore();
+  const { conversations, leads, memories, settings } = useCRMStore();
+  const [aiInsights, setAiInsights] = useState<{ signal: string, opportunity: string, actionTitle: string, actionDesc: string } | null>(null);
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+  const [insightsCache, setInsightsCache] = useState<Record<string, any>>({});
   const [search, setSearch] = useState('');
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
@@ -92,6 +95,95 @@ export default function ConversationsPage() {
   const activeConversations = activeLeadId ? grouped[activeLeadId] || [] : [];
   const activeLead = leadsMap[activeLeadId];
   const activeName = activeLead?.fullName || '';
+
+  useEffect(() => {
+    if (!activeLeadId || !activeLead) return;
+    
+    if (insightsCache[activeLeadId]) {
+      setAiInsights(insightsCache[activeLeadId]);
+      return;
+    }
+
+    const fetchInsights = async () => {
+      setIsGeneratingInsights(true);
+      try {
+        const leadConvs = (grouped[activeLeadId] || []).map(c => `${c.sender}: ${c.message}`).join('\n');
+        const leadMems = memories.filter(m => m.leadId === activeLeadId).map(m => `${m.memoryType}: ${m.memoryValue}`).join('\n');
+        
+        const prompt = `Analyze this lead and return a JSON object with exactly 4 keys: "signal", "opportunity", "actionTitle", and "actionDesc".
+Each value must be 1-2 concise sentences based on actual data. No hallucinations.
+If insufficient data, fallback to "No significant signal detected yet.", "No clear opportunity identified yet.", "Continue Nurturing", and "Continue collecting engagement data."
+
+Lead:
+Name: ${activeLead.fullName}
+Type: ${activeLead.businessType}
+Status: ${activeLead.status}
+Score: ${activeLead.leadScore}/10
+Intent: ${activeLead.intent}
+Urgency: ${activeLead.urgency}
+
+Conversations:
+${leadConvs || 'None'}
+
+Memories:
+${leadMems || 'None'}`;
+
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            prompt, 
+            provider: 'grok',
+            apiKey: settings?.apiKeys?.grok || ''
+          })
+        });
+        
+        const data = await res.json();
+        
+        let parsed;
+        try {
+            const jsonStr = data.response.match(/\{[\s\S]*\}/)?.[0] || data.response;
+            parsed = JSON.parse(jsonStr);
+        } catch(e) {
+            parsed = {};
+        }
+        
+        const finalInsights = {
+            signal: parsed.signal || "No significant signal detected yet.",
+            opportunity: parsed.opportunity || "No clear opportunity identified yet.",
+            actionTitle: parsed.actionTitle || "Continue Nurturing",
+            actionDesc: parsed.actionDesc || "Continue collecting engagement data."
+        };
+
+        setInsightsCache(prev => ({ ...prev, [activeLeadId]: finalInsights }));
+        setAiInsights(finalInsights);
+      } catch (err) {
+        console.error(err);
+        const fallback = {
+          signal: "No significant signal detected yet.",
+          opportunity: "No clear opportunity identified yet.",
+          actionTitle: "Continue Nurturing",
+          actionDesc: "Continue collecting engagement data."
+        };
+        setInsightsCache(prev => ({ ...prev, [activeLeadId]: fallback }));
+        setAiInsights(fallback);
+      } finally {
+        setIsGeneratingInsights(false);
+      }
+    };
+    
+    if (settings?.apiKeys?.grok) {
+        fetchInsights();
+    } else {
+        const fallback = {
+          signal: "Grok API Key not configured.",
+          opportunity: "Configure API key in settings to enable AI insights.",
+          actionTitle: "Configure API",
+          actionDesc: "Go to Settings -> Credentials to connect Grok API."
+        };
+        setAiInsights(fallback);
+    }
+  }, [activeLeadId, activeLead, grouped, memories, settings?.apiKeys?.grok]);
 
   const getChannelIcon = (channel: string) => {
     switch (channel?.toLowerCase()) {
@@ -512,15 +604,15 @@ export default function ConversationsPage() {
                       <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-100" strokeWidth="3.5"></circle>
                       <circle cx="18" cy="18" r="16" fill="none" className={cn(
                           "stroke-current transition-all duration-1000",
-                          activeLead?.leadScore && activeLead.leadScore >= 75 ? "text-emerald-500" :
-                          activeLead?.leadScore && activeLead.leadScore >= 50 ? "text-amber-500" : "text-rose-500"
-                        )} strokeWidth="3.5" strokeDasharray={`${activeLead?.leadScore || 0}, 100`} strokeLinecap="round"></circle>
+                          activeLead?.leadScore && activeLead.leadScore >= 8 ? "text-emerald-500" :
+                          activeLead?.leadScore && activeLead.leadScore >= 5 ? "text-amber-500" : "text-rose-500"
+                        )} strokeWidth="3.5" strokeDasharray={`${((activeLead?.leadScore || 0) / 10) * 100}, 100`} strokeLinecap="round"></circle>
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className={cn(
                         "text-[26px] font-black leading-none tracking-tight",
-                        activeLead?.leadScore && activeLead.leadScore >= 75 ? "text-emerald-600" :
-                        activeLead?.leadScore && activeLead.leadScore >= 50 ? "text-amber-600" : "text-rose-600"
+                        activeLead?.leadScore && activeLead.leadScore >= 8 ? "text-emerald-600" :
+                        activeLead?.leadScore && activeLead.leadScore >= 5 ? "text-amber-600" : "text-rose-600"
                       )}>{activeLead?.leadScore || 0}</span>
                     </div>
                   </div>
@@ -533,26 +625,26 @@ export default function ConversationsPage() {
                   {/* Qualification */}
                   <div className="flex items-center gap-3.5 p-3.5 rounded-[16px] border border-slate-100 bg-slate-50/30 transition-all hover:bg-slate-50/60">
                     <div className={cn("h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm",
-                      activeLead?.leadScore && activeLead.leadScore >= 75 ? "bg-emerald-50" :
-                      activeLead?.leadScore && activeLead.leadScore >= 50 ? "bg-amber-50" : "bg-blue-50"
+                      activeLead?.leadScore && activeLead.leadScore >= 8 ? "bg-emerald-50" :
+                      activeLead?.leadScore && activeLead.leadScore >= 5 ? "bg-amber-50" : "bg-blue-50"
                     )}>
                       <CheckCircle2 className={cn("h-4 w-4",
-                        activeLead?.leadScore && activeLead.leadScore >= 75 ? "text-emerald-600" :
-                        activeLead?.leadScore && activeLead.leadScore >= 50 ? "text-amber-600" : "text-blue-600"
+                        activeLead?.leadScore && activeLead.leadScore >= 8 ? "text-emerald-600" :
+                        activeLead?.leadScore && activeLead.leadScore >= 5 ? "text-amber-600" : "text-blue-600"
                       )} />
                     </div>
                     <div className="flex flex-col gap-1 flex-grow">
                       <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Qualification</span>
                       <p className="text-[13px] text-slate-700 font-medium leading-snug">
-                        {activeLead?.leadScore && activeLead.leadScore >= 75 ? "Ready for sales." : "Requires nurturing."}
+                        {activeLead?.leadScore && activeLead.leadScore >= 8 ? "Ready for sales." : activeLead?.leadScore && activeLead.leadScore >= 5 ? "Requires nurturing." : "Not qualified."}
                       </p>
                     </div>
                     <div className="flex-shrink-0 w-20 text-left pl-2">
                       <span className={cn("text-[13px] font-bold",
-                        activeLead?.leadScore && activeLead.leadScore >= 75 ? "text-emerald-700" :
-                        activeLead?.leadScore && activeLead.leadScore >= 50 ? "text-amber-700" : "text-blue-700"
+                        activeLead?.leadScore && activeLead.leadScore >= 8 ? "text-emerald-700" :
+                        activeLead?.leadScore && activeLead.leadScore >= 5 ? "text-amber-700" : "text-blue-700"
                       )}>
-                        {activeLead?.leadScore && activeLead.leadScore >= 75 ? "High" : "Medium"}
+                        {activeLead?.leadScore && activeLead.leadScore >= 8 ? "High" : activeLead?.leadScore && activeLead.leadScore >= 5 ? "Medium" : "Low"}
                       </span>
                     </div>
                   </div>
@@ -597,9 +689,10 @@ export default function ConversationsPage() {
               <div className="p-6 bg-gradient-to-br from-blue-50/50 to-white border border-blue-100/50 rounded-[20px] shadow-[0_2px_12px_-4px_rgba(59,130,246,0.05)] transition-all hover:shadow-[0_4px_20px_-4px_rgba(59,130,246,0.1)] hover:-translate-y-0.5">
                 <div className="flex items-center gap-2 mb-3" style={{ borderLeft: '3px solid #3b82f6', paddingLeft: '10px' }}>
                   <span className="text-[14px] font-bold text-slate-900 tracking-tight">Key Signal</span>
+                  {isGeneratingInsights && <Activity className="h-3.5 w-3.5 text-blue-400 animate-pulse" />}
                 </div>
-                <p className="text-[14px] text-slate-600 font-medium leading-relaxed">
-                  Lead repeatedly asks about implementation timeline and pricing tiers during chat.
+                <p className={cn("text-[14px] font-medium leading-relaxed", isGeneratingInsights ? "text-slate-400 animate-pulse" : "text-slate-600")}>
+                  {aiInsights?.signal || "Analyzing lead data..."}
                 </p>
               </div>
 
@@ -607,13 +700,11 @@ export default function ConversationsPage() {
               <div className="p-6 bg-gradient-to-br from-emerald-50/50 to-white border border-emerald-100/50 rounded-[20px] shadow-[0_2px_12px_-4px_rgba(16,185,129,0.05)] transition-all hover:shadow-[0_4px_20px_-4px_rgba(16,185,129,0.1)] hover:-translate-y-0.5">
                 <div className="flex items-center gap-2 mb-3" style={{ borderLeft: '3px solid #10b981', paddingLeft: '10px' }}>
                   <span className="text-[14px] font-bold text-slate-900 tracking-tight">Opportunity</span>
+                  {isGeneratingInsights && <Activity className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />}
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-[14px] text-slate-800 font-bold leading-tight">
-                    Strong qualification probability.
-                  </p>
-                  <p className="text-[14px] text-slate-600 font-medium leading-relaxed">
-                    High likelihood of conversion within 14 days.
+                  <p className={cn("text-[14px] font-medium leading-relaxed", isGeneratingInsights ? "text-slate-400 animate-pulse" : "text-slate-600")}>
+                    {aiInsights?.opportunity || "Evaluating potential..."}
                   </p>
                 </div>
               </div>
@@ -626,17 +717,20 @@ export default function ConversationsPage() {
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-5" style={{ borderLeft: '3px solid #6366f1', paddingLeft: '10px' }}>
                     <span className="text-[14px] font-bold text-indigo-900 tracking-tight">Recommended Action</span>
+                    {isGeneratingInsights && <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />}
                   </div>
                   
                   <div className="mb-6">
-                    <h5 className="text-[15px] font-bold text-indigo-950 mb-1.5">Schedule Technical Consultation</h5>
-                    <p className="text-[13px] text-indigo-900/70 font-medium leading-relaxed">
-                      Schedule a technical consultation call within 48 hours to secure the deal.
+                    <h5 className="text-[15px] font-bold text-indigo-950 mb-1.5">
+                      {aiInsights?.actionTitle || "Analyzing actions..."}
+                    </h5>
+                    <p className={cn("text-[13px] font-medium leading-relaxed", isGeneratingInsights ? "text-indigo-900/40 animate-pulse" : "text-indigo-900/70")}>
+                      {aiInsights?.actionDesc || "Processing optimal next steps..."}
                     </p>
                   </div>
                   
                   <Button className="w-full h-11 text-[13.5px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-[12px] shadow-sm transition-all hover:shadow-md">
-                    Schedule Consultation
+                    Execute Action
                   </Button>
                 </div>
               </div>
