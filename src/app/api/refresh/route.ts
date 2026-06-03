@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       }, { status: 200 }); // 200 so the client handles it gracefully
     }
 
-    if (!dbSettings.sheets_connected || !dbSettings.sheets_url) {
+    if (!dbSettings.sheets_url || (!dbSettings.sheets_client_id && !dbSettings.sheets_client_secret)) {
       return NextResponse.json({
         success: false,
         error: "Google Sheets not connected",
