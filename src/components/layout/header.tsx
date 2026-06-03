@@ -1,7 +1,7 @@
 'use client';
 
 import { useCRMStore } from '@/store/crm-store';
-import { Bell, Search, RefreshCw } from 'lucide-react';
+import { Bell, Search, RefreshCw, Wifi, WifiOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
@@ -16,7 +16,7 @@ const TITLES: Record<string, string> = {
 };
 
 export function Header() {
-  const { isRefreshing, refreshData } = useCRMStore();
+  const { isRefreshing, refreshData, sheetsStatus, sheetsError } = useCRMStore();
   const pathname = usePathname();
   const title = TITLES[pathname] ?? 'Dashboard';
 
@@ -45,11 +45,31 @@ export function Header() {
 
       {/* Right: actions */}
       <div className="flex items-center gap-2">
+        {/* Google Sheets connection status indicator */}
+        {sheetsStatus === 'success' && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100" title="Live data synced from Google Sheets">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="text-[11px] font-semibold text-emerald-700">Live</span>
+          </div>
+        )}
+        {sheetsStatus === 'error' && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-100" title={sheetsError || 'Connection error'}>
+            <AlertCircle className="h-3.5 w-3.5 text-rose-500" />
+            <span className="text-[11px] font-semibold text-rose-700 max-w-[140px] truncate">{sheetsError || 'Error'}</span>
+          </div>
+        )}
+        {sheetsStatus === 'not_connected' && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200" title="Configure Google Sheets in Settings">
+            <WifiOff className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-[11px] font-semibold text-slate-500">Not Connected</span>
+          </div>
+        )}
+
         <button
           onClick={refreshData}
           disabled={isRefreshing}
           className="h-9 w-9 flex items-center justify-center rounded-lg text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors disabled:opacity-40"
-          title="Sync data"
+          title="Sync data from Google Sheets"
         >
           <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin text-[#2563EB]')} />
         </button>

@@ -13,14 +13,7 @@ import {
   Settings,
   DashboardStats,
 } from "@/types";
-import {
-  mockLeads,
-  mockConversations,
-  mockMemories,
-  mockAppointments,
-  mockFollowUps,
-  mockBusinessKnowledge,
-} from "@/lib/mock-data";
+import { mockBusinessKnowledge } from "@/lib/mock-data";
 
 interface CRMState {
   // Data
@@ -37,6 +30,8 @@ interface CRMState {
   isRefreshing: boolean;
   sidebarOpen: boolean;
   theme: "dark" | "light";
+  sheetsStatus: 'idle' | 'loading' | 'success' | 'error' | 'not_connected';
+  sheetsError: string | null;
 
   // Computed
   dashboardStats: DashboardStats;
@@ -55,6 +50,7 @@ interface CRMState {
   refreshData: () => Promise<void>;
   deleteMemory: (id: string) => void;
   updateMemory: (id: string, value: string) => void;
+  setSheetsStatus: (status: 'idle' | 'loading' | 'success' | 'error' | 'not_connected', error?: string | null) => void;
 
   // Database Actions
   loadSettingsFromDB: () => Promise<void>;
@@ -123,12 +119,12 @@ const defaultSettings: Settings = {
 export const useCRMStore = create<CRMState>()(
   persist(
     (set, get) => ({
-      // Initial Data
-      leads: mockLeads,
-      conversations: mockConversations,
-      memories: mockMemories,
-      appointments: mockAppointments,
-      followUps: mockFollowUps,
+      // Initial Data — always empty; populated from Google Sheets via refreshData()
+      leads: [],
+      conversations: [],
+      memories: [],
+      appointments: [],
+      followUps: [],
       businessKnowledge: mockBusinessKnowledge,
       settings: defaultSettings,
 
@@ -137,9 +133,11 @@ export const useCRMStore = create<CRMState>()(
       isRefreshing: false,
       sidebarOpen: true,
       theme: "dark",
+      sheetsStatus: 'idle' as const,
+      sheetsError: null,
 
       // Computed
-      dashboardStats: calculateStats(mockLeads, mockAppointments, mockFollowUps),
+      dashboardStats: calculateStats([], [], []),
 
       // Actions
       setLeads: (leads) =>
@@ -180,16 +178,18 @@ export const useCRMStore = create<CRMState>()(
             m.id === id ? { ...m, memoryValue: value, lastUpdated: new Date().toISOString() } : m
           ),
         })),
+      setSheetsStatus: (status, error = null) => set({ sheetsStatus: status, sheetsError: error }),
+
       refreshData: async () => {
-        set({ isRefreshing: true });
+        set({ isRefreshing: true, sheetsStatus: 'loading', sheetsError: null });
         try {
           // Always read the latest settings — avoid stale closure
           const { spreadsheetUrl, connected } = useCRMStore.getState().settings.googleSheets;
 
-          // If Google Sheets is not configured in Settings, skip silently
+          // If Google Sheets is not configured in Settings, show not_connected state
           if (!connected || !spreadsheetUrl) {
             console.info("Google Sheets not configured — using existing store data.");
-            set({ isRefreshing: false });
+            set({ isRefreshing: false, sheetsStatus: 'not_connected' });
             return;
           }
 
@@ -197,25 +197,21 @@ export const useCRMStore = create<CRMState>()(
           const { data: { session } } = await supabase.auth.getSession();
           if (!session?.access_token) {
             console.warn("No active session — cannot refresh from Google Sheets.");
-            set({ isRefreshing: false });
+            set({ isRefreshing: false, sheetsStatus: 'error', sheetsError: 'No active session' });
             return;
           }
 
           // Call the server-side refresh route with the auth token
-          // The server will use this token to securely look up the user's credentials
           const res = await fetch("/api/refresh", {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
+            headers: { Authorization: `Bearer ${session.access_token}` },
           });
 
           if (res.ok) {
             const data = await res.json();
 
             if (!data.success) {
-              // Server returned a handled error (not connected, bad credentials etc.)
               console.warn("Google Sheets refresh:", data.message || data.error);
-              set({ isRefreshing: false });
+              set({ isRefreshing: false, sheetsStatus: 'error', sheetsError: data.message || data.error });
               return;
             }
 
@@ -226,13 +222,15 @@ export const useCRMStore = create<CRMState>()(
             if (data.appointments)  set({ appointments: data.appointments });
             if (data.followUps)     set({ followUps: data.followUps });
 
-            const updated = get();
+            const updated = useCRMStore.getState();
             set({
               dashboardStats: calculateStats(
                 updated.leads,
                 updated.appointments,
                 updated.followUps
               ),
+              sheetsStatus: 'success',
+              sheetsError: null,
               settings: {
                 ...updated.settings,
                 googleSheets: {
@@ -241,9 +239,12 @@ export const useCRMStore = create<CRMState>()(
                 },
               },
             });
+          } else {
+            set({ sheetsStatus: 'error', sheetsError: 'Server error. Please try again.' });
           }
         } catch (error) {
           console.error("Failed to refresh data:", error);
+          set({ sheetsStatus: 'error', sheetsError: 'Network error. Check your connection.' });
         } finally {
           set({ isRefreshing: false });
         }
@@ -365,7 +366,13 @@ export const useCRMStore = create<CRMState>()(
     }),
     {
       name: "crm-storage",
-      partialize: (state) => ({ ...state, settings: undefined }), // CRITICAL: NEVER store settings in localStorage
+      // CRITICAL: Only persist UI preferences.
+      // NEVER persist CRM data (leads, conversations, etc) — always load fresh from Google Sheets.
+      // NEVER persist settings — always load from Supabase for security.
+      partialize: (state) => ({
+        theme: state.theme,
+        sidebarOpen: state.sidebarOpen,
+      }),
     }
   )
 );
