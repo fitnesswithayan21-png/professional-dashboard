@@ -91,13 +91,13 @@ export default function LoginPage() {
         <div className="space-y-2">
           <label className="text-sm font-bold text-slate-700 tracking-wide">Email address</label>
           <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input 
               type="email" 
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-11 h-12 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base transition-all" 
+              className="!pl-12 h-12 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base transition-all" 
               placeholder="you@company.com"
             />
           </div>
@@ -109,13 +109,13 @@ export default function LoginPage() {
             <Link href="#" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">Forgot password?</Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input 
               type="password" 
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-11 h-12 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base transition-all" 
+              className="!pl-12 h-12 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base transition-all" 
               placeholder="••••••••"
             />
           </div>
