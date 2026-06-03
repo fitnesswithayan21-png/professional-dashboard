@@ -92,23 +92,23 @@ class GoogleSheetsService {
 
   // ===== LEADS =====
   async getLeads(): Promise<Lead[]> {
-    const data = await this.getSheetData(`${SHEETS.LEADS}!A2:O`);
+    const data = await this.getSheetData(`${SHEETS.LEADS}!A2:AD`);
     return data.map((row) => ({
       id: row[0] || "",
-      fullName: row[1] || "",
-      email: row[2] || "",
-      phone: row[3] || "",
-      source: row[4] || "",
-      businessType: row[5] || "",
-      leadScore: parseInt(row[6]) || 0,
-      intent: (row[7] as Lead["intent"]) || "low",
-      urgency: (row[8] as Lead["urgency"]) || "low",
+      fullName: row[2] || "",
+      email: row[3] || "",
+      phone: row[4] || "",
+      source: row[5] || "",
+      businessType: row[8] || "",
       status: (row[9] as Lead["status"]) || "new",
-      bookedCall: row[10] === "TRUE",
-      reminderSent: row[11] === "TRUE",
-      createdDate: row[12] || new Date().toISOString(),
-      lastContactTime: row[13] || new Date().toISOString(),
-      notes: row[14] || "",
+      leadScore: parseInt(row[10]) || 0,
+      intent: (row[11] as Lead["intent"]) || "low",
+      urgency: (row[12] as Lead["urgency"]) || "low",
+      createdDate: row[17] || new Date().toISOString(),
+      lastContactTime: row[18] || new Date().toISOString(), // maps to updated_at
+      bookedCall: row[22] === "TRUE",
+      reminderSent: row[28] === "TRUE",
+      notes: row[29] || "",
     }));
   }
 
