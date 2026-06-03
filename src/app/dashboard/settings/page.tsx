@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCRMStore } from '@/store/crm-store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,14 @@ type SettingsTab = 'general' | 'integrations' | 'models' | 'billing';
 
 export default function SettingsPage() {
   const { settings, setSettings } = useCRMStore();
+  const [mounted, setMounted] = useState(false);
+  
   const [activeTab, setActiveTab] = useState<SettingsTab>('integrations');
   const [business, setBusiness] = useState(settings.business);
+  const [googleSheets, setGoogleSheets] = useState(settings.googleSheets);
+  const [googleCalendar, setGoogleCalendar] = useState(settings.googleCalendar);
+  const [telegram, setTelegram] = useState(settings.telegram);
+  const [apiKeys, setApiKeys] = useState(settings.apiKeys);
   const [saving, setSaving] = useState(false);
 
   // AI Models settings
@@ -37,13 +43,17 @@ export default function SettingsPage() {
   const toggleKeyVisibility = (key: string) => setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
 
   const [integrationStatus, setIntegrationStatus] = useState<Record<string, 'connected' | 'not_connected' | 'error'>>({
-    sheets: 'connected',
-    calendar: 'not_connected',
-    grok: 'connected',
-    telegram: 'not_connected'
+    sheets: settings.googleSheets.connected ? 'connected' : 'not_connected',
+    calendar: settings.googleCalendar.connected ? 'connected' : 'not_connected',
+    grok: settings.apiKeys.grok ? 'connected' : 'not_connected',
+    telegram: settings.telegram.connected ? 'connected' : 'not_connected'
   });
 
   const [testingInt, setTestingInt] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const testIntegration = async (id: string, success: boolean = true) => {
     setTestingInt(id);
@@ -56,8 +66,34 @@ export default function SettingsPage() {
     setSaving(true);
     await new Promise(r => setTimeout(r, 800));
     setSettings({
-      ...settings,
       business,
+      googleSheets,
+      googleCalendar,
+      telegram,
+      apiKeys
+    });
+    setSaving(false);
+  };
+
+  const handleSaveIntegration = async (id: string) => {
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 600));
+    
+    // Simple validation update logic
+    const updateStatus = { ...integrationStatus };
+    if (id === 'sheets' && googleSheets.clientId) updateStatus.sheets = 'connected';
+    if (id === 'calendar' && googleCalendar.clientId) updateStatus.calendar = 'connected';
+    if (id === 'grok' && apiKeys.grok) updateStatus.grok = 'connected';
+    if (id === 'telegram' && telegram.botToken) updateStatus.telegram = 'connected';
+    
+    setIntegrationStatus(updateStatus);
+
+    setSettings({
+      business,
+      googleSheets: { ...googleSheets, connected: updateStatus.sheets === 'connected' },
+      googleCalendar: { ...googleCalendar, connected: updateStatus.calendar === 'connected' },
+      telegram: { ...telegram, connected: updateStatus.telegram === 'connected' },
+      apiKeys
     });
     setSaving(false);
   };
@@ -93,6 +129,8 @@ export default function SettingsPage() {
       </div>
     );
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -193,7 +231,13 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client ID</label>
                       <div className="relative">
-                        <Input type={showKeys['g_client'] ? 'text' : 'password'} placeholder="client-id.apps.googleusercontent.com" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" defaultValue="98234710-example.apps.googleusercontent.com" />
+                        <Input 
+                          type={showKeys['g_client'] ? 'text' : 'password'} 
+                          value={googleSheets.clientId}
+                          onChange={(e) => setGoogleSheets(prev => ({ ...prev, clientId: e.target.value }))}
+                          placeholder="client-id.apps.googleusercontent.com" 
+                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                        />
                         <button onClick={() => toggleKeyVisibility('g_client')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
                           {showKeys['g_client'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -202,7 +246,13 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client Secret</label>
                       <div className="relative">
-                        <Input type={showKeys['g_secret'] ? 'text' : 'password'} placeholder="GOCSPX-..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" defaultValue="GOCSPX-abc123def456ghi789" />
+                        <Input 
+                          type={showKeys['g_secret'] ? 'text' : 'password'} 
+                          value={googleSheets.clientSecret}
+                          onChange={(e) => setGoogleSheets(prev => ({ ...prev, clientSecret: e.target.value }))}
+                          placeholder="GOCSPX-..." 
+                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                        />
                         <button onClick={() => toggleKeyVisibility('g_secret')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
                           {showKeys['g_secret'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -210,14 +260,20 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Spreadsheet URL</label>
-                      <Input type="text" placeholder="https://docs.google.com/spreadsheets/d/..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" defaultValue="https://docs.google.com/spreadsheets/d/1XyZ..." />
+                      <Input 
+                        type="text" 
+                        value={googleSheets.spreadsheetUrl}
+                        onChange={(e) => setGoogleSheets(prev => ({ ...prev, spreadsheetUrl: e.target.value }))}
+                        placeholder="https://docs.google.com/spreadsheets/d/..." 
+                        className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" 
+                      />
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
-                    <Button variant="secondary" onClick={() => testIntegration('sheets')} disabled={testingInt === 'sheets'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                    <Button variant="secondary" onClick={() => testIntegration('sheets', !!googleSheets.clientId)} disabled={testingInt === 'sheets'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'sheets' ? 'Testing...' : 'Test Connection'}
                     </Button>
-                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('sheets')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
                   </div>
                 </div>
 
@@ -239,7 +295,13 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client ID</label>
                       <div className="relative">
-                        <Input type={showKeys['cal_client'] ? 'text' : 'password'} placeholder="client-id.apps.googleusercontent.com" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" />
+                        <Input 
+                          type={showKeys['cal_client'] ? 'text' : 'password'} 
+                          value={googleCalendar.clientId}
+                          onChange={(e) => setGoogleCalendar(prev => ({ ...prev, clientId: e.target.value }))}
+                          placeholder="client-id.apps.googleusercontent.com" 
+                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                        />
                         <button onClick={() => toggleKeyVisibility('cal_client')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
                           {showKeys['cal_client'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -248,7 +310,13 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client Secret</label>
                       <div className="relative">
-                        <Input type={showKeys['cal_secret'] ? 'text' : 'password'} placeholder="GOCSPX-..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" />
+                        <Input 
+                          type={showKeys['cal_secret'] ? 'text' : 'password'} 
+                          value={googleCalendar.clientSecret}
+                          onChange={(e) => setGoogleCalendar(prev => ({ ...prev, clientSecret: e.target.value }))}
+                          placeholder="GOCSPX-..." 
+                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                        />
                         <button onClick={() => toggleKeyVisibility('cal_secret')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
                           {showKeys['cal_secret'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -256,14 +324,20 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Calendar ID (Optional)</label>
-                      <Input type="text" placeholder="primary or c_...group.calendar.google.com" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" />
+                      <Input 
+                        type="text" 
+                        value={googleCalendar.calendarId}
+                        onChange={(e) => setGoogleCalendar(prev => ({ ...prev, calendarId: e.target.value }))}
+                        placeholder="primary or c_...group.calendar.google.com" 
+                        className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" 
+                      />
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
-                    <Button variant="secondary" onClick={() => testIntegration('calendar', false)} disabled={testingInt === 'calendar'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                    <Button variant="secondary" onClick={() => testIntegration('calendar', !!googleCalendar.clientId)} disabled={testingInt === 'calendar'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'calendar' ? 'Testing...' : 'Test Connection'}
                     </Button>
-                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('calendar')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
                   </div>
                 </div>
 
@@ -285,7 +359,13 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Grok API Key</label>
                       <div className="relative">
-                        <Input type={showKeys['grok_key'] ? 'text' : 'password'} placeholder="xai-..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" defaultValue="xai-sk-abc123def456" />
+                        <Input 
+                          type={showKeys['grok_key'] ? 'text' : 'password'} 
+                          value={apiKeys.grok}
+                          onChange={(e) => setApiKeys(prev => ({ ...prev, grok: e.target.value }))}
+                          placeholder="xai-..." 
+                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                        />
                         <button onClick={() => toggleKeyVisibility('grok_key')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
                           {showKeys['grok_key'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -293,10 +373,10 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
-                    <Button variant="secondary" onClick={() => testIntegration('grok')} disabled={testingInt === 'grok'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                    <Button variant="secondary" onClick={() => testIntegration('grok', !!apiKeys.grok)} disabled={testingInt === 'grok'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'grok' ? 'Validating...' : 'Validate API Key'}
                     </Button>
-                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save API Key</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('grok')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save API Key</Button>
                   </div>
                 </div>
 
@@ -318,7 +398,13 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bot Token</label>
                       <div className="relative">
-                        <Input type={showKeys['tg_token'] ? 'text' : 'password'} placeholder="123456789:ABCdefGHIjkl..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" />
+                        <Input 
+                          type={showKeys['tg_token'] ? 'text' : 'password'} 
+                          value={telegram.botToken}
+                          onChange={(e) => setTelegram(prev => ({ ...prev, botToken: e.target.value }))}
+                          placeholder="123456789:ABCdefGHIjkl..." 
+                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
+                        />
                         <button onClick={() => toggleKeyVisibility('tg_token')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
                           {showKeys['tg_token'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -326,14 +412,20 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Webhook URL (Optional)</label>
-                      <Input type="text" placeholder="https://api.yourdomain.com/webhook/telegram" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" />
+                      <Input 
+                        type="text" 
+                        value={telegram.webhookUrl}
+                        onChange={(e) => setTelegram(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                        placeholder="https://api.yourdomain.com/webhook/telegram" 
+                        className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" 
+                      />
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
-                    <Button variant="secondary" onClick={() => testIntegration('telegram', false)} disabled={testingInt === 'telegram'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                    <Button variant="secondary" onClick={() => testIntegration('telegram', !!telegram.botToken)} disabled={testingInt === 'telegram'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'telegram' ? 'Testing...' : 'Test Bot'}
                     </Button>
-                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('telegram')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
                   </div>
                 </div>
 

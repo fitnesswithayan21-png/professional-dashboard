@@ -83,9 +83,22 @@ export interface Settings {
     claude: string;
   };
   googleSheets: {
-    spreadsheetId: string;
+    clientId: string;
+    clientSecret: string;
+    spreadsheetUrl: string;
     connected: boolean;
     lastSync: string;
+  };
+  googleCalendar: {
+    clientId: string;
+    clientSecret: string;
+    calendarId: string;
+    connected: boolean;
+  };
+  telegram: {
+    botToken: string;
+    webhookUrl: string;
+    connected: boolean;
   };
   business: {
     businessName: string;

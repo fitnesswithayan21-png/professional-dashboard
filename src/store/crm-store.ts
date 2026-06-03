@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   Lead,
   Conversation,
@@ -89,9 +90,22 @@ const defaultSettings: Settings = {
     claude: "",
   },
   googleSheets: {
-    spreadsheetId: "",
+    clientId: "",
+    clientSecret: "",
+    spreadsheetUrl: "",
     connected: false,
     lastSync: "",
+  },
+  googleCalendar: {
+    clientId: "",
+    clientSecret: "",
+    calendarId: "",
+    connected: false,
+  },
+  telegram: {
+    botToken: "",
+    webhookUrl: "",
+    connected: false,
   },
   business: {
     businessName: "NexusAI Solutions",
@@ -101,84 +115,91 @@ const defaultSettings: Settings = {
   },
 };
 
-export const useCRMStore = create<CRMState>((set, get) => ({
-  // Initial Data
-  leads: mockLeads,
-  conversations: mockConversations,
-  memories: mockMemories,
-  appointments: mockAppointments,
-  followUps: mockFollowUps,
-  businessKnowledge: mockBusinessKnowledge,
-  settings: defaultSettings,
+export const useCRMStore = create<CRMState>()(
+  persist(
+    (set, get) => ({
+      // Initial Data
+      leads: mockLeads,
+      conversations: mockConversations,
+      memories: mockMemories,
+      appointments: mockAppointments,
+      followUps: mockFollowUps,
+      businessKnowledge: mockBusinessKnowledge,
+      settings: defaultSettings,
 
-  // UI State
-  isLoading: false,
-  isRefreshing: false,
-  sidebarOpen: true,
-  theme: "dark",
+      // UI State
+      isLoading: false,
+      isRefreshing: false,
+      sidebarOpen: true,
+      theme: "dark",
 
-  // Computed
-  dashboardStats: calculateStats(mockLeads, mockAppointments, mockFollowUps),
+      // Computed
+      dashboardStats: calculateStats(mockLeads, mockAppointments, mockFollowUps),
 
-  // Actions
-  setLeads: (leads) =>
-    set((state) => ({
-      leads,
-      dashboardStats: calculateStats(leads, state.appointments, state.followUps),
-    })),
-  setConversations: (conversations) => set({ conversations }),
-  setMemories: (memories) => set({ memories }),
-  setAppointments: (appointments) =>
-    set((state) => ({
-      appointments,
-      dashboardStats: calculateStats(state.leads, appointments, state.followUps),
-    })),
-  setFollowUps: (followUps) =>
-    set((state) => ({
-      followUps,
-      dashboardStats: calculateStats(state.leads, state.appointments, followUps),
-    })),
-  setBusinessKnowledge: (businessKnowledge) => set({ businessKnowledge }),
-  setSettings: (newSettings) =>
-    set((state) => ({
-      settings: { ...state.settings, ...newSettings },
-    })),
-  setLoading: (isLoading) => set({ isLoading }),
-  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
-  toggleTheme: () =>
-    set((state) => ({
-      theme: state.theme === "dark" ? "light" : "dark",
-    })),
-  deleteMemory: (id) =>
-    set((state) => ({
-      memories: state.memories.filter((m) => m.id !== id),
-    })),
-  updateMemory: (id, value) =>
-    set((state) => ({
-      memories: state.memories.map((m) =>
-        m.id === id ? { ...m, memoryValue: value, lastUpdated: new Date().toISOString() } : m
-      ),
-    })),
-  refreshData: async () => {
-    set({ isRefreshing: true });
-    try {
-      const res = await fetch("/api/refresh");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.leads) set({ leads: data.leads });
-        if (data.conversations) set({ conversations: data.conversations });
-        if (data.memories) set({ memories: data.memories });
-        if (data.appointments) set({ appointments: data.appointments });
-        if (data.followUps) set({ followUps: data.followUps });
-        const state = get();
-        set({
-          dashboardStats: calculateStats(state.leads, state.appointments, state.followUps),
-        });
-      }
-    } catch (error) {
-      console.error("Failed to refresh data:", error);
-    } finally {
-      set({ isRefreshing: false });
+      // Actions
+      setLeads: (leads) =>
+        set((state) => ({
+          leads,
+          dashboardStats: calculateStats(leads, state.appointments, state.followUps),
+        })),
+      setConversations: (conversations) => set({ conversations }),
+      setMemories: (memories) => set({ memories }),
+      setAppointments: (appointments) =>
+        set((state) => ({
+          appointments,
+          dashboardStats: calculateStats(state.leads, appointments, state.followUps),
+        })),
+      setFollowUps: (followUps) =>
+        set((state) => ({
+          followUps,
+          dashboardStats: calculateStats(state.leads, state.appointments, followUps),
+        })),
+      setBusinessKnowledge: (businessKnowledge) => set({ businessKnowledge }),
+      setSettings: (newSettings) =>
+        set((state) => ({
+          settings: { ...state.settings, ...newSettings },
+        })),
+      setLoading: (isLoading) => set({ isLoading }),
+      setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+      toggleTheme: () =>
+        set((state) => ({
+          theme: state.theme === "dark" ? "light" : "dark",
+        })),
+      deleteMemory: (id) =>
+        set((state) => ({
+          memories: state.memories.filter((m) => m.id !== id),
+        })),
+      updateMemory: (id, value) =>
+        set((state) => ({
+          memories: state.memories.map((m) =>
+            m.id === id ? { ...m, memoryValue: value, lastUpdated: new Date().toISOString() } : m
+          ),
+        })),
+      refreshData: async () => {
+        set({ isRefreshing: true });
+        try {
+          const res = await fetch("/api/refresh");
+          if (res.ok) {
+            const data = await res.json();
+            if (data.leads) set({ leads: data.leads });
+            if (data.conversations) set({ conversations: data.conversations });
+            if (data.memories) set({ memories: data.memories });
+            if (data.appointments) set({ appointments: data.appointments });
+            if (data.followUps) set({ followUps: data.followUps });
+            const state = get();
+            set({
+              dashboardStats: calculateStats(state.leads, state.appointments, state.followUps),
+            });
+          }
+        } catch (error) {
+          console.error("Failed to refresh data:", error);
+        } finally {
+          set({ isRefreshing: false });
+        }
+      },
+    }),
+    {
+      name: "crm-storage",
     }
-  },
-}));
+  )
+);
