@@ -16,27 +16,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isConversations = pathname === '/dashboard/conversations';
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (!session) {
-        router.replace("/auth/login");
+      if (session) {
+        if (mounted) {
+          setAuthenticated(true);
+          setLoading(false);
+        }
       } else {
-        setAuthenticated(true);
+        // Prevent premature redirect if Supabase is currently processing an OAuth callback in the URL
+        const isAuthCallback = window.location.search.includes('code=') || 
+                               window.location.hash.includes('access_token=') ||
+                               window.location.search.includes('error=') || 
+                               window.location.hash.includes('error=');
+        
+        if (isAuthCallback) {
+          return; // Let onAuthStateChange handle it after parsing
+        }
+        
+        if (mounted) {
+          router.replace("/auth/login");
+        }
       }
-      setLoading(false);
     };
 
     checkAuth();
 
-    // Listen for auth changes (like signing out from another tab)
+    // Listen for auth changes (like signing in via OAuth, or signing out)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        router.replace("/auth/login");
+      if (event === 'SIGNED_IN' && session) {
+        if (mounted) {
+          setAuthenticated(true);
+          setLoading(false);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        if (mounted) router.replace("/auth/login");
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [router]);
