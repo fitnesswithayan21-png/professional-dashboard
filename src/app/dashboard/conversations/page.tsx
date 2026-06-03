@@ -556,21 +556,21 @@ export default function ConversationsPage() {
                   {/* Intent */}
                   <div className="flex items-center gap-3.5 p-3.5 rounded-[16px] border border-slate-100 bg-slate-50/30 transition-all hover:bg-slate-50/60">
                     <div className={cn("h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm",
-                      activeLead?.intent === "high" || activeLead?.intent === "urgent" ? "bg-orange-50" : "bg-blue-50"
+                      activeLead?.intent === "high" ? "bg-orange-50" : "bg-blue-50"
                     )}>
                       <Activity className={cn("h-4 w-4",
-                        activeLead?.intent === "high" || activeLead?.intent === "urgent" ? "text-orange-600" : "text-blue-600"
+                        activeLead?.intent === "high" ? "text-orange-600" : "text-blue-600"
                       )} />
                     </div>
                     <div className="flex flex-col gap-1 flex-grow">
                       <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Intent Level</span>
                       <p className="text-[13px] text-slate-700 font-medium leading-snug">
-                        {activeLead?.intent === "high" || activeLead?.intent === "urgent" ? "Active engagement." : "Passive consumption."}
+                        {activeLead?.intent === "high" ? "Active engagement." : "Passive consumption."}
                       </p>
                     </div>
                     <div className="flex-shrink-0 w-20 text-left pl-2">
                       <span className={cn("text-[13px] font-bold capitalize",
-                        activeLead?.intent === "high" || activeLead?.intent === "urgent" ? "text-orange-700" : "text-blue-700"
+                        activeLead?.intent === "high" ? "text-orange-700" : "text-blue-700"
                       )}>
                         {activeLead?.intent || "Medium"}
                       </span>
