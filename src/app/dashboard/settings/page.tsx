@@ -18,7 +18,9 @@ import {
   Calendar,
   Plug,
   Send,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 
 type SettingsTab = 'general' | 'integrations' | 'models' | 'billing';
@@ -52,6 +54,7 @@ export default function SettingsPage() {
   });
 
   const [testingInt, setTestingInt] = useState<string | null>(null);
+  const [testMessage, setTestMessage] = useState<{ id: string; success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     const initSettings = async () => {
@@ -78,6 +81,43 @@ export default function SettingsPage() {
       });
     }
   }, [settings, loadingInitial]);
+
+  // Real test connection — calls the server API with actual credentials
+  const testSheetsConnection = async () => {
+    setTestingInt('sheets');
+    setTestMessage(null);
+    try {
+      const { data: { session } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+      if (!session?.access_token) {
+        setTestMessage({ id: 'sheets', success: false, message: 'Not logged in. Please refresh and try again.' });
+        setTestingInt(null);
+        return;
+      }
+      const res = await fetch('/api/test-sheets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          spreadsheetUrl: googleSheets.spreadsheetUrl,
+          clientId: googleSheets.clientId,
+          clientSecret: googleSheets.clientSecret,
+        }),
+      });
+      const data = await res.json();
+      setTestMessage({ id: 'sheets', success: data.success, message: data.message || data.error });
+      if (data.success) {
+        setIntegrationStatus(prev => ({ ...prev, sheets: 'connected' }));
+      } else {
+        setIntegrationStatus(prev => ({ ...prev, sheets: 'error' }));
+      }
+    } catch (err) {
+      setTestMessage({ id: 'sheets', success: false, message: 'Network error. Please try again.' });
+      setIntegrationStatus(prev => ({ ...prev, sheets: 'error' }));
+    }
+    setTestingInt(null);
+  };
 
   const testIntegration = async (id: string, success: boolean = true) => {
     setTestingInt(id);
@@ -309,13 +349,36 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
-                    <Button variant="secondary" onClick={() => testIntegration('sheets', !!googleSheets.clientId)} disabled={testingInt === 'sheets'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
-                      {testingInt === 'sheets' ? 'Testing...' : 'Test Connection'}
+                    <Button
+                      variant="secondary"
+                      onClick={testSheetsConnection}
+                      disabled={testingInt === 'sheets' || !googleSheets.spreadsheetUrl || !googleSheets.clientSecret}
+                      className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700"
+                    >
+                      {testingInt === 'sheets'
+                        ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Testing...</>
+                        : 'Test Connection'
+                      }
                     </Button>
                     <Button variant="primary" onClick={() => handleSaveIntegration('sheets')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">
                       {saving ? 'Saving...' : 'Save Credentials'}
                     </Button>
                   </div>
+                  {/* Test result message */}
+                  {testMessage?.id === 'sheets' && (
+                    <div className={cn(
+                      'mt-3 flex items-start gap-2.5 p-3 rounded-[10px] text-[12.5px] font-medium leading-snug',
+                      testMessage.success
+                        ? 'bg-emerald-50 border border-emerald-100 text-emerald-800'
+                        : 'bg-rose-50 border border-rose-100 text-rose-800'
+                    )}>
+                      {testMessage.success
+                        ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                        : <XCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                      }
+                      <span>{testMessage.message}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. Google Calendar */}
