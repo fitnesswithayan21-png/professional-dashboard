@@ -495,7 +495,7 @@ export default function LeadsPage() {
                     <span className="text-[13px] text-slate-500">Not Available</span>
                   ) : (
                     leadAppointments.map(app => {
-                      const showJoin = app.status === 'scheduled' || app.status === 'confirmed' || app.status === 'upcoming';
+                      const showJoin = app.status === 'scheduled' || app.status === 'confirmed';
                       return (
                         <div key={app.id} className="p-3 bg-emerald-50/30 rounded-lg border border-emerald-100/50">
                           <div className="flex justify-between items-start mb-2">
