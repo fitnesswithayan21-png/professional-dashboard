@@ -7,6 +7,7 @@ import { Lead, Conversation, AIMemory, Appointment, FollowUp, BusinessKnowledge 
 export const mockLeads: Lead[] = [
   {
     id: "LD-001",
+    conversationId: "",
     fullName: "Sarah Mitchell",
     email: "sarah.mitchell@techcorp.com",
     phone: "+1 (555) 234-5678",
@@ -23,6 +24,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-002",
+    conversationId: "",
     fullName: "James Rodriguez",
     email: "j.rodriguez@innovate.io",
     phone: "+1 (555) 345-6789",
@@ -39,6 +41,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-003",
+    conversationId: "",
     fullName: "Emily Chen",
     email: "emily.chen@startup.co",
     phone: "+1 (555) 456-7890",
@@ -55,6 +58,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-004",
+    conversationId: "",
     fullName: "Michael Foster",
     email: "m.foster@enterprise.com",
     phone: "+1 (555) 567-8901",
@@ -71,6 +75,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-005",
+    conversationId: "",
     fullName: "Olivia Brown",
     email: "olivia.b@design.studio",
     phone: "+1 (555) 678-9012",
@@ -87,6 +92,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-006",
+    conversationId: "",
     fullName: "David Kim",
     email: "david.kim@techventures.io",
     phone: "+1 (555) 789-0123",
@@ -103,6 +109,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-007",
+    conversationId: "",
     fullName: "Amanda Torres",
     email: "a.torres@consulting.com",
     phone: "+1 (555) 890-1234",
@@ -119,6 +126,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-008",
+    conversationId: "",
     fullName: "Robert Zhang",
     email: "r.zhang@manufacturing.co",
     phone: "+1 (555) 901-2345",
@@ -135,6 +143,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-009",
+    conversationId: "",
     fullName: "Jessica Park",
     email: "j.park@realestate.com",
     phone: "+1 (555) 012-3456",
@@ -151,6 +160,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-010",
+    conversationId: "",
     fullName: "Chris Anderson",
     email: "c.anderson@retail.shop",
     phone: "+1 (555) 123-4567",
@@ -167,6 +177,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-011",
+    conversationId: "",
     fullName: "Nina Patel",
     email: "nina.p@edtech.io",
     phone: "+1 (555) 234-5679",
@@ -183,6 +194,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: "LD-012",
+    conversationId: "",
     fullName: "Tom Wilson",
     email: "tom.w@logistics.co",
     phone: "+1 (555) 345-6780",
