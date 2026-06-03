@@ -4,6 +4,7 @@
 
 export interface Lead {
   id: string;
+  conversationId: string;
   fullName: string;
   email: string;
   phone: string;

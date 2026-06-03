@@ -95,6 +95,7 @@ class GoogleSheetsService {
     const data = await this.getSheetData(`${SHEETS.LEADS}!A2:AD`);
     return data.map((row) => ({
       id: row[0] || "",
+      conversationId: row[1] || "",
       fullName: row[2] || "",
       email: row[3] || "",
       phone: row[4] || "",
@@ -148,6 +149,20 @@ class GoogleSheetsService {
       messageType: row[5] || "",
       timestamp: row[6] || new Date().toISOString(),
     }));
+  }
+
+  async addConversationMessage(conv: Conversation): Promise<void> {
+    await this.appendRow(SHEETS.CONVERSATIONS, [
+      [
+        conv.id,
+        conv.leadId,
+        conv.sender,
+        conv.message,
+        conv.channel,
+        conv.messageType,
+        conv.timestamp,
+      ],
+    ]);
   }
 
   // ===== AI MEMORY =====

@@ -45,7 +45,7 @@ const mockTimelineEvents = [
 ];
 
 export default function ConversationsPage() {
-  const { conversations, leads, memories, settings } = useCRMStore();
+  const { conversations, setConversations, leads, memories, settings } = useCRMStore();
   const [aiInsights, setAiInsights] = useState<{ signal: string, opportunity: string, actionTitle: string, actionDesc: string } | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   const [insightsCache, setInsightsCache] = useState<Record<string, any>>({});
@@ -193,9 +193,60 @@ ${leadMems || 'None'}`;
     }
   };
 
-  const handleSendMessage = () => {
-    if (!inputText.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || !activeLeadId || !activeLead) return;
+    
+    const messageText = inputText.trim();
     setInputText('');
+    
+    const botToken = settings?.telegram?.botToken;
+    const chatId = activeLead.conversationId;
+
+    if (!botToken) {
+      alert("Telegram Bot Token is not configured. Go to Settings -> Credentials.");
+      return;
+    }
+
+    if (!chatId) {
+      alert("This lead does not have a Telegram conversation ID associated.");
+      return;
+    }
+
+    const messageId = `msg_${Date.now()}`;
+    const timestamp = new Date().toISOString();
+
+    const newMsg: Conversation = {
+      id: messageId,
+      leadId: activeLeadId,
+      sender: 'owner',
+      message: messageText,
+      channel: activeLead.source || 'telegram',
+      messageType: 'text',
+      timestamp
+    };
+
+    try {
+      const res = await fetch('/api/telegram/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          botToken,
+          chatId,
+          text: messageText,
+          googleSheetsConfig: settings?.googleSheets,
+          messageData: newMsg
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error("Message could not be delivered.");
+      }
+
+      setConversations([...conversations, newMsg]);
+    } catch (err) {
+      alert("Message could not be delivered.");
+      setInputText(messageText);
+    }
   };
 
   // Helper for Lead Intelligence Badges
@@ -373,11 +424,13 @@ ${leadMems || 'None'}`;
                     } catch { return '' }
                   })();
                   const isLast = idx === sortedArr.length - 1;
-                  const isAI = /ai|agent|nexusai|assistant|bot/i.test(conv.sender);
+                  const isOwner = conv.sender.toLowerCase() === 'owner';
+                  const isAI = !isOwner && /ai|agent|nexusai|assistant|bot/i.test(conv.sender);
+                  const isOutgoing = isAI || isOwner;
 
                   return (
                     <div key={conv.id || idx}>
-                      {!isAI ? (
+                      {!isOutgoing ? (
                         <div className="flex justify-start" style={{ marginTop: '8px', marginBottom: '8px' }}>
                           <div style={{
                             position: 'relative',
@@ -412,22 +465,29 @@ ${leadMems || 'None'}`;
                           <div style={{
                             position: 'relative',
                             maxWidth: '65%',
-                            backgroundColor: '#dcfce7',
+                            backgroundColor: isOwner ? '#e0f2fe' : '#dcfce7',
                             borderRadius: '8px 0 8px 8px',
                             padding: '8px 12px 26px 12px',
                             boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                             wordBreak: 'break-word',
-                            border: '1px solid rgba(22,163,74,0.1)',
+                            border: isOwner ? '1px solid rgba(14,165,233,0.1)' : '1px solid rgba(22,163,74,0.1)',
                           }}>
                             {/* Tail top-right */}
                             <svg style={{ position: 'absolute', top: '-1px', right: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
-                              <path d="M0 0 L9 0 L9 14 Q5 7 0 0 Z" fill="#dcfce7" />
+                              <path d="M0 0 L9 0 L9 14 Q5 7 0 0 Z" fill={isOwner ? '#e0f2fe' : '#dcfce7'} />
                             </svg>
-                            {/* NexusAI name in teal */}
-                            <p style={{ fontSize: '13px', fontWeight: 600, color: '#059669', margin: '0 0 5px 0', lineHeight: '16px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              NexusAI <Sparkles style={{ height: '11px', width: '11px', color: '#059669' }} />
-                            </p>
-                            {/* AI message text */}
+                            
+                            {isOwner ? (
+                              <p style={{ fontSize: '13px', fontWeight: 600, color: '#0369a1', margin: '0 0 5px 0', lineHeight: '16px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                Workspace Owner <MessageSquare style={{ height: '11px', width: '11px', color: '#0369a1' }} />
+                              </p>
+                            ) : (
+                              <p style={{ fontSize: '13px', fontWeight: 600, color: '#059669', margin: '0 0 5px 0', lineHeight: '16px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                NexusAI <Sparkles style={{ height: '11px', width: '11px', color: '#059669' }} />
+                              </p>
+                            )}
+
+                            {/* message text */}
                             <p style={{ fontSize: '14.3px', lineHeight: '21px', color: '#1e293b', margin: 0 }}>
                               {conv.message}
                             </p>
