@@ -121,17 +121,27 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
                         {formatDateTime(conv.timestamp)}
                       </span>
                       <div className="flex flex-col gap-3">
-                        <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E5E7EB]">
-                          <p className="text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-2">User Query</p>
-                          <p className="text-[13px] text-[#111827] leading-relaxed">{conv.userMessage}</p>
-                        </div>
-                        <div className="bg-[#EFF6FF] rounded-xl p-4 border border-[#BFDBFE]">
-                          <p className="text-[11px] font-bold text-[#4F46E5] uppercase tracking-wider mb-2 flex items-center gap-1">
-                            <Sparkles className="h-3 w-3" />
-                            AI Output
-                          </p>
-                          <p className="text-[13px] text-[#111827] leading-relaxed">{conv.aiResponse}</p>
-                        </div>
+                        {(() => {
+                           const isAI = /ai|agent|nexusai|assistant|bot/i.test(conv.sender);
+                           if (!isAI) {
+                             return (
+                                <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E5E7EB]">
+                                  <p className="text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-2">User Query</p>
+                                  <p className="text-[13px] text-[#111827] leading-relaxed">{conv.message}</p>
+                                </div>
+                             )
+                           } else {
+                             return (
+                                <div className="bg-[#EFF6FF] rounded-xl p-4 border border-[#BFDBFE]">
+                                  <p className="text-[11px] font-bold text-[#4F46E5] uppercase tracking-wider mb-2 flex items-center gap-1">
+                                    <Sparkles className="h-3 w-3" />
+                                    AI Output
+                                  </p>
+                                  <p className="text-[13px] text-[#111827] leading-relaxed">{conv.message}</p>
+                                </div>
+                             )
+                           }
+                        })()}
                       </div>
                     </div>
                   ))}

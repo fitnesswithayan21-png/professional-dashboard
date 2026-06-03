@@ -81,7 +81,7 @@ export default function ConversationsPage() {
     return leadIds.filter(id => {
       const convs = grouped[id];
       const lead = leadsMap[id];
-      const name = lead?.fullName || convs[0]?.leadName || '';
+      const name = lead?.fullName || '';
       return name.toLowerCase().includes(search.toLowerCase()) || 
              lead?.email.toLowerCase().includes(search.toLowerCase()) ||
              lead?.businessType?.toLowerCase().includes(search.toLowerCase());
@@ -91,7 +91,7 @@ export default function ConversationsPage() {
   const activeLeadId = selectedLeadId || filteredLeads[0] || '';
   const activeConversations = activeLeadId ? grouped[activeLeadId] || [] : [];
   const activeLead = leadsMap[activeLeadId];
-  const activeName = activeLead?.fullName || activeConversations[0]?.leadName || '';
+  const activeName = activeLead?.fullName || '';
 
   const getChannelIcon = (channel: string) => {
     switch (channel?.toLowerCase()) {
@@ -164,7 +164,7 @@ export default function ConversationsPage() {
             filteredLeads.map((leadId, idx) => {
               const convs = grouped[leadId];
               const lead = leadsMap[leadId];
-              const name = lead?.fullName || convs[0]?.leadName || '';
+              const name = lead?.fullName || '';
               const lastMsg = convs[convs.length - 1];
               const isActive = activeLeadId === leadId;
               const msgTime = (() => {
@@ -174,7 +174,7 @@ export default function ConversationsPage() {
                   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                 } catch { return ''; }
               })();
-              const preview = lastMsg?.userMessage || lastMsg?.aiResponse || '';
+              const preview = lastMsg?.message || '';
 
               return (
                 <button
@@ -268,7 +268,10 @@ export default function ConversationsPage() {
                   </span>
                 </div>
 
-                {activeConversations.map((conv, idx) => {
+                {activeConversations
+                  .slice()
+                  .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+                  .map((conv, idx, sortedArr) => {
                   // Robust time: parse the timestamp and format as h:mm AM/PM
                   const msgTime = (() => {
                     try {
@@ -277,72 +280,75 @@ export default function ConversationsPage() {
                       return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                     } catch { return '' }
                   })();
-                  const isLast = idx === activeConversations.length - 1;
+                  const isLast = idx === sortedArr.length - 1;
+                  const isAI = /ai|agent|nexusai|assistant|bot/i.test(conv.sender);
 
                   return (
                     <div key={conv.id || idx}>
-                      {/* ── Incoming: Lead/Customer (LEFT, white) ── */}
-                      <div className="flex justify-start" style={{ marginTop: '8px', marginBottom: '8px' }}>
-                        <div style={{
-                          position: 'relative',
-                          maxWidth: '65%',
-                          backgroundColor: '#ffffff',
-                          borderRadius: '0 8px 8px 8px',
-                          padding: '8px 12px 26px 12px',
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                          wordBreak: 'break-word',
-                          border: '1px solid rgba(0,0,0,0.05)',
-                        }}>
-                          {/* Tail — top-left corner */}
-                          <svg style={{ position: 'absolute', top: '-1px', left: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
-                            <path d="M9 0 L0 0 L0 14 Q4 7 9 0 Z" fill="#ffffff" />
-                          </svg>
-                          {/* Lead name */}
-                          <p style={{ fontSize: '13px', fontWeight: 600, color: '#f97316', margin: '0 0 5px 0', lineHeight: '16px' }}>
-                            {activeName}
-                          </p>
-                          {/* Customer message text */}
-                          <p style={{ fontSize: '14.3px', lineHeight: '21px', color: '#334155', margin: 0 }}>
-                            {conv.userMessage}
-                          </p>
-                          {/* Timestamp in bottom padding zone */}
-                          <span style={{ position: 'absolute', right: '10px', bottom: '7px' }}>
-                            <span style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1 }}>{msgTime}</span>
-                          </span>
+                      {!isAI ? (
+                        {/* ── Incoming: Lead/Customer (LEFT, white) ── */}
+                        <div className="flex justify-start" style={{ marginTop: '8px', marginBottom: '8px' }}>
+                          <div style={{
+                            position: 'relative',
+                            maxWidth: '65%',
+                            backgroundColor: '#ffffff',
+                            borderRadius: '0 8px 8px 8px',
+                            padding: '8px 12px 26px 12px',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            wordBreak: 'break-word',
+                            border: '1px solid rgba(0,0,0,0.05)',
+                          }}>
+                            {/* Tail — top-left corner */}
+                            <svg style={{ position: 'absolute', top: '-1px', left: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
+                              <path d="M9 0 L0 0 L0 14 Q4 7 9 0 Z" fill="#ffffff" />
+                            </svg>
+                            {/* Lead name */}
+                            <p style={{ fontSize: '13px', fontWeight: 600, color: '#f97316', margin: '0 0 5px 0', lineHeight: '16px' }}>
+                              {activeName}
+                            </p>
+                            {/* Customer message text */}
+                            <p style={{ fontSize: '14.3px', lineHeight: '21px', color: '#334155', margin: 0 }}>
+                              {conv.message}
+                            </p>
+                            {/* Timestamp in bottom padding zone */}
+                            <span style={{ position: 'absolute', right: '10px', bottom: '7px' }}>
+                              <span style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1 }}>{msgTime}</span>
+                            </span>
+                          </div>
                         </div>
-                      </div>
-
-                      {/* ── NexusAI reply — RIGHT, light green ── */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', marginBottom: '32px' }}>
-                        <div style={{
-                          position: 'relative',
-                          maxWidth: '65%',
-                          backgroundColor: '#dcfce7',
-                          borderRadius: '8px 0 8px 8px',
-                          padding: '8px 12px 26px 12px',
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                          wordBreak: 'break-word',
-                          border: '1px solid rgba(22,163,74,0.1)',
-                        }}>
-                          {/* Tail top-right */}
-                          <svg style={{ position: 'absolute', top: '-1px', right: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
-                            <path d="M0 0 L9 0 L9 14 Q5 7 0 0 Z" fill="#dcfce7" />
-                          </svg>
-                          {/* NexusAI name in teal */}
-                          <p style={{ fontSize: '13px', fontWeight: 600, color: '#059669', margin: '0 0 5px 0', lineHeight: '16px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            NexusAI <Sparkles style={{ height: '11px', width: '11px', color: '#059669' }} />
-                          </p>
-                          {/* AI message text */}
-                          <p style={{ fontSize: '14.3px', lineHeight: '21px', color: '#1e293b', margin: 0 }}>
-                            {conv.aiResponse}
-                          </p>
-                          {/* Time + blue double ticks */}
-                          <span style={{ position: 'absolute', right: '10px', bottom: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                            <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1 }}>{msgTime}</span>
-                            <CheckCheck style={{ height: '16px', width: '16px', color: '#3b82f6', flexShrink: 0 }} />
-                          </span>
+                      ) : (
+                        {/* ── NexusAI reply — RIGHT, light green ── */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', marginBottom: '8px' }}>
+                          <div style={{
+                            position: 'relative',
+                            maxWidth: '65%',
+                            backgroundColor: '#dcfce7',
+                            borderRadius: '8px 0 8px 8px',
+                            padding: '8px 12px 26px 12px',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            wordBreak: 'break-word',
+                            border: '1px solid rgba(22,163,74,0.1)',
+                          }}>
+                            {/* Tail top-right */}
+                            <svg style={{ position: 'absolute', top: '-1px', right: '-8px' }} width="9" height="14" viewBox="0 0 9 14">
+                              <path d="M0 0 L9 0 L9 14 Q5 7 0 0 Z" fill="#dcfce7" />
+                            </svg>
+                            {/* NexusAI name in teal */}
+                            <p style={{ fontSize: '13px', fontWeight: 600, color: '#059669', margin: '0 0 5px 0', lineHeight: '16px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              NexusAI <Sparkles style={{ height: '11px', width: '11px', color: '#059669' }} />
+                            </p>
+                            {/* AI message text */}
+                            <p style={{ fontSize: '14.3px', lineHeight: '21px', color: '#1e293b', margin: 0 }}>
+                              {conv.message}
+                            </p>
+                            {/* Time + blue double ticks */}
+                            <span style={{ position: 'absolute', right: '10px', bottom: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1 }}>{msgTime}</span>
+                              <CheckCheck style={{ height: '16px', width: '16px', color: '#3b82f6', flexShrink: 0 }} />
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* ── CRM event after first exchange ── */}
                       {idx === 0 && (

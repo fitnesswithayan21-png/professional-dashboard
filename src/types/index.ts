@@ -23,12 +23,11 @@ export interface Lead {
 export interface Conversation {
   id: string;
   leadId: string;
-  leadName: string;
-  userMessage: string;
-  aiResponse: string;
+  sender: string;
+  message: string;
+  channel: string;
+  messageType: string;
   timestamp: string;
-  channel: "web" | "email" | "sms" | "whatsapp" | "phone";
-  messageType: "inbound" | "outbound" | "system";
 }
 
 export interface AIMemory {

@@ -142,13 +142,11 @@ class GoogleSheetsService {
     return data.map((row) => ({
       id: row[0] || "",
       leadId: row[1] || "",
-      leadName: row[2] || "",
-      userMessage: row[3] || "",
-      aiResponse: row[4] || "",
-      timestamp: row[5] || new Date().toISOString(),
-      channel: (row[6] as Conversation["channel"]) || "web",
-      messageType:
-        (row[7] as Conversation["messageType"]) || "inbound",
+      sender: row[2] || "",
+      message: row[3] || "",
+      channel: row[4] || "",
+      messageType: row[5] || "",
+      timestamp: row[6] || new Date().toISOString(),
     }));
   }
 

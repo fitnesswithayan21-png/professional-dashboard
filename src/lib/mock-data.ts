@@ -199,7 +199,7 @@ export const mockLeads: Lead[] = [
   },
 ];
 
-export const mockConversations: Conversation[] = [
+export const mockConversations: any[] = [
   {
     id: "CV-001",
     leadId: "LD-001",
