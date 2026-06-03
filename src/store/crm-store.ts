@@ -183,8 +183,8 @@ export const useCRMStore = create<CRMState>()(
       refreshData: async () => {
         set({ isRefreshing: true });
         try {
-          const state = get();
-          const { spreadsheetUrl, connected } = state.settings.googleSheets;
+          // Always read the latest settings — avoid stale closure
+          const { spreadsheetUrl, connected } = useCRMStore.getState().settings.googleSheets;
 
           // If Google Sheets is not configured in Settings, skip silently
           if (!connected || !spreadsheetUrl) {

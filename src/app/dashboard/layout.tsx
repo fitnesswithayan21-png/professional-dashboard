@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useCRMStore } from "@/store/crm-store";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const isConversations = pathname === '/dashboard/conversations';
+  const { loadSettingsFromDB, refreshData, settings } = useCRMStore();
 
   useEffect(() => {
     let mounted = true;
@@ -62,6 +64,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       subscription.unsubscribe();
     };
   }, [router]);
+
+  // Once authenticated, load settings from Supabase then auto-refresh if connected
+  useEffect(() => {
+    if (!authenticated) return;
+    const initData = async () => {
+      await loadSettingsFromDB();
+      // After loading, check if Google Sheets is configured and trigger a sync
+      const latest = useCRMStore.getState().settings;
+      if (latest.googleSheets.connected && latest.googleSheets.spreadsheetUrl) {
+        await refreshData();
+      }
+    };
+    initData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated]);
 
   if (loading) {
     return (
