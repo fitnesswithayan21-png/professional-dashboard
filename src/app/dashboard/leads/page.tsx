@@ -33,7 +33,7 @@ const STATUSES = ['new', 'contacted', 'qualified', 'converted', 'lost'];
 const SOURCES = ['Website', 'LinkedIn', 'Referral', 'Google Ads', 'Direct'];
 
 export default function LeadsPage() {
-  const { leads, appointments } = useCRMStore();
+  const { leads, appointments, memories } = useCRMStore();
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -88,6 +88,36 @@ export default function LeadsPage() {
   const newLeads = leads.filter(l => l.status === 'new').length;
 
   const selectedLead = leads.find(l => l.id === selectedLeadId);
+  const leadMemories = memories.filter(m => m.leadId === selectedLeadId);
+
+  // Generate initials from full name
+  const getInitials = (name: string) => {
+    if (!name) return 'NA';
+    return name.trim().split(' ').filter(Boolean).map(n => n[0].toUpperCase()).slice(0, 2).join('');
+  };
+
+  // Derive qualification level from lead_score directly
+  const getQualificationLevel = (score: number) => {
+    if (score >= 90) return 'High';
+    if (score >= 70) return 'Medium';
+    return 'Low';
+  };
+
+  // Derive intent: first try AI Memory sheet, then leads field
+  const getDerivedIntent = (lead: any, mems: any[]): string => {
+    const intentMem = mems.find(m => m.memoryType === 'intent');
+    if (intentMem?.memoryValue) return intentMem.memoryValue;
+    if (lead.intent) return lead.intent;
+    return 'Not Available';
+  };
+
+  // Derive priority: first try AI Memory sheet, then leads urgency field
+  const getDerivedPriority = (lead: any, mems: any[]): string => {
+    const urgencyMem = mems.find(m => m.memoryType === 'timeline');
+    if (urgencyMem?.memoryValue) return urgencyMem.memoryValue;
+    if (lead.urgency) return lead.urgency;
+    return 'Not Available';
+  };
 
   const renderScoreBar = (score: number) => {
     let barColor = 'bg-rose-500';
@@ -111,9 +141,10 @@ export default function LeadsPage() {
 
   const renderAIIntelligence = (lead: any) => {
     const score = lead.leadScore;
-    const intent = lead.intent || (score > 80 ? 'urgent' : score > 50 ? 'medium' : 'low');
+    // Use actual intent from data — no fake fallback generation
+    const intent = lead.intent || getDerivedIntent(lead, memories.filter(m => m.leadId === lead.id));
     
-    // Determine Qualification Badge
+    // Determine Qualification Badge from actual score
     let qualText = 'Low Confidence';
     let qualIcon = <AlertCircle className="h-3 w-3 text-rose-500" />;
     let qualTint = 'bg-rose-50/50 text-rose-700 border-rose-100/50';
@@ -121,11 +152,11 @@ export default function LeadsPage() {
     else if (score >= 70) { qualText = 'High Qualification'; qualIcon = <Activity className="h-3 w-3 text-amber-500" />; qualTint = 'bg-amber-50 text-amber-700 border-amber-100'; }
     else if (score >= 50) { qualText = 'Fair Qualification'; qualIcon = <Activity className="h-3 w-3 text-blue-500" />; qualTint = 'bg-blue-50 text-blue-700 border-blue-100'; }
 
-    // Determine Intent Badge
-    let intentText = 'Low Buying Intent';
+    // Determine Intent Badge from actual data
+    let intentText = intent !== 'Not Available' ? `${intent.replace(/_/g, ' ')}` : 'Not Available';
     let intentTint = 'bg-slate-50/50 text-slate-600 border-slate-200/50';
-    if (intent === 'urgent' || intent === 'high') { intentText = 'Strong Buying Intent'; intentTint = 'bg-orange-50 text-orange-700 border-orange-100'; }
-    else if (intent === 'medium') { intentText = 'Moderate Intent'; intentTint = 'bg-blue-50 text-blue-700 border-blue-100'; }
+    if (intent === 'high' || intent === 'urgent') { intentTint = 'bg-orange-50 text-orange-700 border-orange-100'; }
+    else if (intent === 'medium') { intentTint = 'bg-blue-50 text-blue-700 border-blue-100'; }
 
     return (
       <div className="flex flex-col gap-2.5">
@@ -389,7 +420,7 @@ export default function LeadsPage() {
                   <div className="flex-1 min-w-0 pt-0.5">
                     <h3 className="text-[17px] font-bold text-slate-900 truncate tracking-tight">{lead.fullName}</h3>
                     <div className="flex items-center gap-2 mt-1.5 text-[13px] text-slate-500 font-medium">
-                      <span className="truncate max-w-[120px]">{lead.businessType || 'No Company'}</span>
+                      <span className="truncate max-w-[120px]">{lead.businessType || 'Not Available'}</span>
                       <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />
                       <span className="truncate">{lead.source}</span>
                     </div>
@@ -459,9 +490,9 @@ export default function LeadsPage() {
               
               {/* SECTION 1: PROFILE HEADER */}
               <div className="bg-white rounded-[16px] p-6 shadow-sm border border-slate-200/60 flex flex-col items-center text-center">
-                <Avatar name={selectedLead.fullName} size="lg" className="h-20 w-20 text-[28px] font-bold bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md mb-4" />
-                <h3 className="text-[18px] font-semibold text-slate-900 tracking-tight">{selectedLead.fullName}</h3>
-                <p className="text-[14px] text-slate-500 mb-4">{selectedLead.email}</p>
+                <Avatar name={getInitials(selectedLead.fullName)} size="lg" className="h-20 w-20 text-[28px] font-bold bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md mb-4" />
+                <h3 className="text-[18px] font-semibold text-slate-900 tracking-tight">{selectedLead.fullName || 'Not Available'}</h3>
+                <p className="text-[14px] text-slate-500 mb-4">{selectedLead.email || 'Not Available'}</p>
                 <div className="flex items-center gap-2">
                   <Badge status={selectedLead.status} className="px-3 py-1 text-[12px] uppercase tracking-wider font-bold" />
                   <span className="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider">
@@ -510,12 +541,12 @@ export default function LeadsPage() {
                   {/* Company */}
                   <div className="bg-blue-50/40 border border-blue-100/60 rounded-[12px] p-3.5 h-[72px] flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:bg-blue-50/70 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
                     <span className="text-[11px] font-semibold text-blue-500/80 uppercase tracking-wider leading-none">Company</span>
-                    <span className="text-[14px] font-bold text-blue-900 truncate leading-none">{selectedLead.businessType || '—'}</span>
+                    <span className="text-[14px] font-bold text-blue-900 truncate leading-none">{selectedLead.businessType || 'Not Available'}</span>
                   </div>
                   {/* Source */}
                   <div className="bg-violet-50/40 border border-violet-100/60 rounded-[12px] p-3.5 h-[72px] flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:bg-violet-50/70 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
                     <span className="text-[11px] font-semibold text-violet-500/80 uppercase tracking-wider leading-none">Source</span>
-                    <span className="text-[14px] font-bold text-violet-900 capitalize leading-none">{selectedLead.source}</span>
+                    <span className="text-[14px] font-bold text-violet-900 capitalize leading-none">{selectedLead.source || 'Not Available'}</span>
                   </div>
                   {/* Status */}
                   <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-[12px] p-3.5 h-[72px] flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:bg-emerald-50/70 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
@@ -530,12 +561,12 @@ export default function LeadsPage() {
                   {/* Created Date */}
                   <div className="bg-slate-50/60 border border-slate-100/80 rounded-[12px] p-3.5 h-[72px] flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:bg-slate-100/50 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
                     <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider leading-none">Created Date</span>
-                    <span className="text-[13px] font-bold text-slate-800 leading-none">{formatDate(selectedLead.createdDate)}</span>
+                    <span className="text-[13px] font-bold text-slate-800 leading-none">{selectedLead.createdDate ? formatDate(selectedLead.createdDate) : 'Not Available'}</span>
                   </div>
                   {/* Last Activity */}
                   <div className="bg-indigo-50/40 border border-indigo-100/60 rounded-[12px] p-3.5 h-[72px] flex flex-col items-center justify-center text-center gap-1.5 transition-colors hover:bg-indigo-50/70 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
                     <span className="text-[11px] font-semibold text-indigo-500/80 uppercase tracking-wider leading-none">Last Activity</span>
-                    <span className="text-[13px] font-bold text-indigo-900 leading-none">{selectedLead.lastContactTime ? formatDate(selectedLead.lastContactTime) : '—'}</span>
+                    <span className="text-[13px] font-bold text-indigo-900 leading-none">{selectedLead.lastContactTime ? formatDate(selectedLead.lastContactTime) : 'Not Available'}</span>
                   </div>
                 </div>
               </div>
@@ -594,15 +625,15 @@ export default function LeadsPage() {
                         <div className="flex flex-col gap-1 flex-grow">
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Qualification</span>
                           <p className="text-[13px] text-slate-600 font-medium">
-                            {selectedLead.leadScore >= 75 ? "Ready for sales pipeline progression." : selectedLead.leadScore >= 50 ? "Requires further nurturing." : "Not currently qualified."}
+                            {getQualificationLevel(selectedLead.leadScore)}
                           </p>
                         </div>
                         <div className="flex-shrink-0 w-28 text-left">
                           <span className={cn("text-[13px] font-bold",
-                            selectedLead.leadScore >= 75 ? "text-emerald-700" :
-                            selectedLead.leadScore >= 50 ? "text-amber-700" : "text-blue-700"
+                            selectedLead.leadScore >= 90 ? "text-emerald-700" :
+                            selectedLead.leadScore >= 70 ? "text-amber-700" : "text-blue-700"
                           )}>
-                            {selectedLead.leadScore >= 75 ? "High" : selectedLead.leadScore >= 50 ? "Medium" : "Informational"}
+                            {getQualificationLevel(selectedLead.leadScore)}
                           </span>
                         </div>
                       </div>
@@ -610,26 +641,26 @@ export default function LeadsPage() {
                       {/* Intent Level */}
                       <div className="flex items-center gap-3.5 p-4 rounded-[12px] border border-slate-100 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                         <div className={cn("h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0",
-                          selectedLead.intent === "high" ? "bg-orange-50" :
-                          selectedLead.intent === "medium" ? "bg-amber-50" : "bg-blue-50"
+                          getDerivedIntent(selectedLead, leadMemories) === "high" ? "bg-orange-50" :
+                          getDerivedIntent(selectedLead, leadMemories) === "medium" ? "bg-amber-50" : "bg-blue-50"
                         )}>
                           <Activity className={cn("h-4 w-4",
-                            selectedLead.intent === "high" ? "text-orange-600" :
-                            selectedLead.intent === "medium" ? "text-amber-600" : "text-blue-600"
+                            getDerivedIntent(selectedLead, leadMemories) === "high" ? "text-orange-600" :
+                            getDerivedIntent(selectedLead, leadMemories) === "medium" ? "text-amber-600" : "text-blue-600"
                           )} />
                         </div>
                         <div className="flex flex-col gap-1 flex-grow">
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Intent Level</span>
                           <p className="text-[13px] text-slate-600 font-medium">
-                            {selectedLead.intent === "high" ? "Active engagement across pricing pages." : "Passive content consumption."}
+                            {getDerivedIntent(selectedLead, leadMemories) === "high" ? "Active engagement across pricing pages." : "Passive content consumption."}
                           </p>
                         </div>
                         <div className="flex-shrink-0 w-28 text-left">
                           <span className={cn("text-[13px] font-bold",
-                            selectedLead.intent === "high" ? "text-orange-700" :
-                            selectedLead.intent === "medium" ? "text-amber-700" : "text-blue-700"
+                            getDerivedIntent(selectedLead, leadMemories) === "high" ? "text-orange-700" :
+                            getDerivedIntent(selectedLead, leadMemories) === "medium" ? "text-amber-700" : "text-blue-700"
                           )}>
-                            {selectedLead.intent ? `${selectedLead.intent} Intent` : "Medium Intent"}
+                            {getDerivedIntent(selectedLead, leadMemories)}
                           </span>
                         </div>
                       </div>
@@ -637,26 +668,26 @@ export default function LeadsPage() {
                       {/* Priority */}
                       <div className="flex items-center gap-3.5 p-4 rounded-[12px] border border-slate-100 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                         <div className={cn("h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0",
-                          selectedLead.urgency === "urgent" || selectedLead.urgency === "high" ? "bg-rose-50" :
-                          selectedLead.urgency === "medium" ? "bg-amber-50" : "bg-blue-50"
+                          getDerivedPriority(selectedLead, leadMemories) === "urgent" || getDerivedPriority(selectedLead, leadMemories) === "high" ? "bg-rose-50" :
+                          getDerivedPriority(selectedLead, leadMemories) === "medium" ? "bg-amber-50" : "bg-blue-50"
                         )}>
                           <AlertCircle className={cn("h-4 w-4",
-                            selectedLead.urgency === "urgent" || selectedLead.urgency === "high" ? "text-rose-600" :
-                            selectedLead.urgency === "medium" ? "text-amber-600" : "text-blue-600"
+                            getDerivedPriority(selectedLead, leadMemories) === "urgent" || getDerivedPriority(selectedLead, leadMemories) === "high" ? "text-rose-600" :
+                            getDerivedPriority(selectedLead, leadMemories) === "medium" ? "text-amber-600" : "text-blue-600"
                           )} />
                         </div>
                         <div className="flex flex-col gap-1 flex-grow">
                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Priority</span>
                           <p className="text-[13px] text-slate-600 font-medium">
-                            {selectedLead.urgency === "urgent" || selectedLead.urgency === "high" ? "Immediate action required by SLA." : "Standard follow-up timeframe."}
+                            {getDerivedPriority(selectedLead, leadMemories) === "urgent" || getDerivedPriority(selectedLead, leadMemories) === "high" ? "Immediate action required by SLA." : "Standard follow-up timeframe."}
                           </p>
                         </div>
                         <div className="flex-shrink-0 w-28 text-left">
                           <span className={cn("text-[13px] font-bold",
-                            selectedLead.urgency === "urgent" || selectedLead.urgency === "high" ? "text-rose-700" :
-                            selectedLead.urgency === "medium" ? "text-amber-700" : "text-blue-700"
+                            getDerivedPriority(selectedLead, leadMemories) === "urgent" || getDerivedPriority(selectedLead, leadMemories) === "high" ? "text-rose-700" :
+                            getDerivedPriority(selectedLead, leadMemories) === "medium" ? "text-amber-700" : "text-blue-700"
                           )}>
-                            {selectedLead.urgency || "Urgent"}
+                            {getDerivedPriority(selectedLead, leadMemories)}
                           </span>
                         </div>
                       </div>
