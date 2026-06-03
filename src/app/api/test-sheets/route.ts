@@ -116,14 +116,21 @@ export async function POST(req: NextRequest) {
       const sheetTitles = response.data.sheets?.map(s => s.properties?.title) || [];
 
       // Check for required sheets
-      const required = ["Leads"];
+      const required = [
+        "Leads (Master Lead Database)",
+        "Conversation History",
+        "AI Memory",
+        "Follow-Up Queue",
+        "Business_Knowledge",
+        "Appointments"
+      ];
       const missing = required.filter(name => !sheetTitles.includes(name));
 
       if (missing.length > 0) {
         return NextResponse.json({
           success: false,
           error: "Missing required sheets",
-          message: `Connected to spreadsheet "${response.data.properties?.title}" but missing required sheet(s): ${missing.join(", ")}. Please ensure your sheet is named exactly "Leads".`,
+          message: `Connected to spreadsheet "${response.data.properties?.title}" but missing required sheet(s): ${missing.join(", ")}. Please ensure your worksheet tabs are named exactly as required.`,
           sheetsFound: sheetTitles,
         });
       }

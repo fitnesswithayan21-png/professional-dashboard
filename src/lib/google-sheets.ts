@@ -13,12 +13,12 @@ import {
 
 // Sheet names matching the required data structure
 const SHEETS = {
-  LEADS: "Leads",
+  LEADS: "Leads (Master Lead Database)",
   CONVERSATIONS: "Conversation History",
   AI_MEMORY: "AI Memory",
   APPOINTMENTS: "Appointments",
   FOLLOW_UPS: "Follow-Up Queue",
-  BUSINESS: "Business Knowledge",
+  BUSINESS: "Business_Knowledge",
 } as const;
 
 class GoogleSheetsService {
