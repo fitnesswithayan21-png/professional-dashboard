@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { supabase } from "@/lib/supabase";
 import {
   Lead,
   Conversation,
@@ -54,6 +55,10 @@ interface CRMState {
   refreshData: () => Promise<void>;
   deleteMemory: (id: string) => void;
   updateMemory: (id: string, value: string) => void;
+
+  // Database Actions
+  loadSettingsFromDB: () => Promise<void>;
+  saveSettingsToDB: (newSettings: Settings) => Promise<boolean>;
 }
 
 function calculateStats(
@@ -197,9 +202,132 @@ export const useCRMStore = create<CRMState>()(
           set({ isRefreshing: false });
         }
       },
+      
+      // Database Actions
+      loadSettingsFromDB: async () => {
+        try {
+          // 1. Ensure anonymous session
+          let { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            const { data } = await supabase.auth.signInAnonymously();
+            session = data?.session;
+          }
+
+          if (session?.user) {
+            // 2. Fetch user's settings from Supabase
+            const { data: dbSettings, error } = await supabase
+              .from('workspace_settings')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+
+            if (dbSettings && !error) {
+              const parsedSettings: Settings = {
+                apiKeys: {
+                  grok: dbSettings.grok_key || '',
+                  openai: dbSettings.openai_key || '',
+                  gemini: dbSettings.gemini_key || '',
+                  claude: dbSettings.claude_key || ''
+                },
+                googleSheets: {
+                  clientId: dbSettings.sheets_client_id || '',
+                  clientSecret: dbSettings.sheets_client_secret || '',
+                  spreadsheetUrl: dbSettings.sheets_url || '',
+                  connected: dbSettings.sheets_connected || false,
+                  lastSync: ''
+                },
+                googleCalendar: {
+                  clientId: dbSettings.calendar_client_id || '',
+                  clientSecret: dbSettings.calendar_client_secret || '',
+                  calendarId: dbSettings.calendar_id || '',
+                  connected: dbSettings.calendar_connected || false
+                },
+                telegram: {
+                  botToken: dbSettings.telegram_bot_token || '',
+                  webhookUrl: dbSettings.telegram_webhook_url || '',
+                  connected: dbSettings.telegram_connected || false
+                },
+                business: {
+                  businessName: dbSettings.business_name || 'NexusAI Solutions',
+                  timezone: dbSettings.timezone || 'America/New_York',
+                  workingHours: dbSettings.working_hours || '9:00 AM - 6:00 PM',
+                  meetingDuration: dbSettings.meeting_duration || 30
+                }
+              };
+
+              set({ settings: parsedSettings });
+            }
+          }
+        } catch (e) {
+          console.error("Error loading settings from Supabase:", e);
+        }
+      },
+
+      saveSettingsToDB: async (newSettings: Settings) => {
+        try {
+          // 1. Ensure session
+          let { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            const { data } = await supabase.auth.signInAnonymously();
+            session = data?.session;
+          }
+
+          if (session?.user) {
+            const payload = {
+              user_id: session.user.id,
+              grok_key: newSettings.apiKeys.grok,
+              openai_key: newSettings.apiKeys.openai,
+              gemini_key: newSettings.apiKeys.gemini,
+              claude_key: newSettings.apiKeys.claude,
+              
+              sheets_client_id: newSettings.googleSheets.clientId,
+              sheets_client_secret: newSettings.googleSheets.clientSecret,
+              sheets_url: newSettings.googleSheets.spreadsheetUrl,
+              sheets_connected: newSettings.googleSheets.connected,
+              
+              calendar_client_id: newSettings.googleCalendar.clientId,
+              calendar_client_secret: newSettings.googleCalendar.clientSecret,
+              calendar_id: newSettings.googleCalendar.calendarId,
+              calendar_connected: newSettings.googleCalendar.connected,
+              
+              telegram_bot_token: newSettings.telegram.botToken,
+              telegram_webhook_url: newSettings.telegram.webhookUrl,
+              telegram_connected: newSettings.telegram.connected,
+              
+              business_name: newSettings.business.businessName,
+              timezone: newSettings.business.timezone,
+              working_hours: newSettings.business.workingHours,
+              meeting_duration: newSettings.business.meetingDuration,
+              
+              updated_at: new Date().toISOString()
+            };
+
+            // Upsert based on user_id 
+            // Note: In Supabase, if user_id is unique, upsert works. Otherwise, we match and update, or insert.
+            const { error: matchError, data: existing } = await supabase
+              .from('workspace_settings')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+
+            if (existing) {
+              await supabase.from('workspace_settings').update(payload).eq('id', existing.id);
+            } else {
+              await supabase.from('workspace_settings').insert([payload]);
+            }
+
+            set({ settings: newSettings });
+            return true;
+          }
+        } catch (e) {
+          console.error("Error saving settings to Supabase:", e);
+        }
+        return false;
+      }
     }),
     {
       name: "crm-storage",
+      partialize: (state) => ({ ...state, settings: undefined }), // CRITICAL: NEVER store settings in localStorage
     }
   )
 );

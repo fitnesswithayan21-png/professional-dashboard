@@ -17,14 +17,16 @@ import {
   Database,
   Calendar,
   Plug,
-  Send
+  Send,
+  Loader2
 } from 'lucide-react';
 
 type SettingsTab = 'general' | 'integrations' | 'models' | 'billing';
 
 export default function SettingsPage() {
-  const { settings, setSettings } = useCRMStore();
+  const { settings, setSettings, loadSettingsFromDB, saveSettingsToDB } = useCRMStore();
   const [mounted, setMounted] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(true);
   
   const [activeTab, setActiveTab] = useState<SettingsTab>('integrations');
   const [business, setBusiness] = useState(settings.business);
@@ -43,17 +45,39 @@ export default function SettingsPage() {
   const toggleKeyVisibility = (key: string) => setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
 
   const [integrationStatus, setIntegrationStatus] = useState<Record<string, 'connected' | 'not_connected' | 'error'>>({
-    sheets: settings.googleSheets.connected ? 'connected' : 'not_connected',
-    calendar: settings.googleCalendar.connected ? 'connected' : 'not_connected',
-    grok: settings.apiKeys.grok ? 'connected' : 'not_connected',
-    telegram: settings.telegram.connected ? 'connected' : 'not_connected'
+    sheets: 'not_connected',
+    calendar: 'not_connected',
+    grok: 'not_connected',
+    telegram: 'not_connected'
   });
 
   const [testingInt, setTestingInt] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    const initSettings = async () => {
+      await loadSettingsFromDB();
+      setMounted(true);
+      setLoadingInitial(false);
+    };
+    initSettings();
+  }, [loadSettingsFromDB]);
+
+  // Sync state whenever settings change (like after DB load)
+  useEffect(() => {
+    if (!loadingInitial) {
+      setBusiness(settings.business);
+      setGoogleSheets(settings.googleSheets);
+      setGoogleCalendar(settings.googleCalendar);
+      setTelegram(settings.telegram);
+      setApiKeys(settings.apiKeys);
+      setIntegrationStatus({
+        sheets: settings.googleSheets.connected ? 'connected' : 'not_connected',
+        calendar: settings.googleCalendar.connected ? 'connected' : 'not_connected',
+        grok: settings.apiKeys.grok ? 'connected' : 'not_connected',
+        telegram: settings.telegram.connected ? 'connected' : 'not_connected'
+      });
+    }
+  }, [settings, loadingInitial]);
 
   const testIntegration = async (id: string, success: boolean = true) => {
     setTestingInt(id);
@@ -64,22 +88,27 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
-    setSettings({
+    const updatedSettings = {
+      ...settings,
       business,
       googleSheets,
       googleCalendar,
       telegram,
       apiKeys
-    });
+    };
+    
+    const success = await saveSettingsToDB(updatedSettings);
     setSaving(false);
+    
+    if (success) {
+      // Optional: Add a toast notification here in the future
+      console.log('Saved to Supabase securely');
+    }
   };
 
   const handleSaveIntegration = async (id: string) => {
     setSaving(true);
-    await new Promise(r => setTimeout(r, 600));
     
-    // Simple validation update logic
     const updateStatus = { ...integrationStatus };
     if (id === 'sheets' && googleSheets.clientId) updateStatus.sheets = 'connected';
     if (id === 'calendar' && googleCalendar.clientId) updateStatus.calendar = 'connected';
@@ -88,13 +117,16 @@ export default function SettingsPage() {
     
     setIntegrationStatus(updateStatus);
 
-    setSettings({
+    const updatedSettings = {
+      ...settings,
       business,
       googleSheets: { ...googleSheets, connected: updateStatus.sheets === 'connected' },
       googleCalendar: { ...googleCalendar, connected: updateStatus.calendar === 'connected' },
       telegram: { ...telegram, connected: updateStatus.telegram === 'connected' },
       apiKeys
-    });
+    };
+
+    await saveSettingsToDB(updatedSettings);
     setSaving(false);
   };
 
@@ -130,7 +162,14 @@ export default function SettingsPage() {
     );
   };
 
-  if (!mounted) return null;
+  if (!mounted || loadingInitial) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] w-full gap-4 text-slate-400">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <p className="text-[13px] font-medium tracking-wide">Loading Secure Settings from Supabase...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -140,9 +179,9 @@ export default function SettingsPage() {
           variant="primary" 
           onClick={handleSave} 
           disabled={saving} 
-          className="gap-2 shrink-0 bg-[#2563EB] hover:bg-blue-700 h-9 px-4 text-[13px] rounded-[10px] shadow-sm"
+          className="gap-2 shrink-0 bg-[#2563EB] hover:bg-blue-700 h-9 px-4 text-[13px] rounded-[10px] shadow-sm transition-all"
         >
-          <Save className="h-4 w-4" />
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
@@ -207,7 +246,7 @@ export default function SettingsPage() {
               <div className="pb-2">
                 <h3 className="text-[18px] font-bold text-slate-900 tracking-tight">Integrations & Credentials</h3>
                 <p className="text-[13.5px] text-slate-500 mt-1 font-medium">
-                  Connect your external services and authenticate your workspace.
+                  Connect your external services and authenticate your workspace securely.
                 </p>
               </div>
 
@@ -273,7 +312,9 @@ export default function SettingsPage() {
                     <Button variant="secondary" onClick={() => testIntegration('sheets', !!googleSheets.clientId)} disabled={testingInt === 'sheets'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'sheets' ? 'Testing...' : 'Test Connection'}
                     </Button>
-                    <Button variant="primary" onClick={() => handleSaveIntegration('sheets')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('sheets')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">
+                      {saving ? 'Saving...' : 'Save Credentials'}
+                    </Button>
                   </div>
                 </div>
 
@@ -337,7 +378,9 @@ export default function SettingsPage() {
                     <Button variant="secondary" onClick={() => testIntegration('calendar', !!googleCalendar.clientId)} disabled={testingInt === 'calendar'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'calendar' ? 'Testing...' : 'Test Connection'}
                     </Button>
-                    <Button variant="primary" onClick={() => handleSaveIntegration('calendar')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('calendar')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">
+                      {saving ? 'Saving...' : 'Save Credentials'}
+                    </Button>
                   </div>
                 </div>
 
@@ -376,7 +419,9 @@ export default function SettingsPage() {
                     <Button variant="secondary" onClick={() => testIntegration('grok', !!apiKeys.grok)} disabled={testingInt === 'grok'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'grok' ? 'Validating...' : 'Validate API Key'}
                     </Button>
-                    <Button variant="primary" onClick={() => handleSaveIntegration('grok')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save API Key</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('grok')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">
+                      {saving ? 'Saving...' : 'Save API Key'}
+                    </Button>
                   </div>
                 </div>
 
@@ -425,7 +470,9 @@ export default function SettingsPage() {
                     <Button variant="secondary" onClick={() => testIntegration('telegram', !!telegram.botToken)} disabled={testingInt === 'telegram'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
                       {testingInt === 'telegram' ? 'Testing...' : 'Test Bot'}
                     </Button>
-                    <Button variant="primary" onClick={() => handleSaveIntegration('telegram')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                    <Button variant="primary" onClick={() => handleSaveIntegration('telegram')} disabled={saving} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">
+                      {saving ? 'Saving...' : 'Save Credentials'}
+                    </Button>
                   </div>
                 </div>
 
