@@ -123,7 +123,7 @@ export default function LeadsPage() {
     return (
       <div className="flex items-center gap-3 w-full max-w-[120px] select-none">
         <div className="h-1.5 w-[64px] bg-slate-100 rounded-full overflow-hidden shrink-0">
-          <div className={cn("h-full rounded-full transition-all duration-300", barColor)} style={{ width: `${score * 10}%` }} />
+          <div className={cn("h-full rounded-full transition-all duration-300", barColor)} style={{ width: `${(score / 10) * 100}%` }} />
         </div>
         <span className={cn(
           "font-mono text-[13px] font-bold tabular-nums shrink-0",
@@ -592,7 +592,7 @@ export default function LeadsPage() {
                               "stroke-current transition-all duration-1000",
                               selectedLead.leadScore >= 8 ? "text-emerald-500" :
                               selectedLead.leadScore >= 5 ? "text-amber-500" : "text-rose-500"
-                            )} strokeWidth="3" strokeDasharray={`${selectedLead.leadScore * 10}, 100`} strokeLinecap="round"></circle>
+                            )} strokeWidth="3" strokeDasharray={`${(selectedLead.leadScore / 10) * 100}, 100`} strokeLinecap="round"></circle>
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                           <span className={cn(
