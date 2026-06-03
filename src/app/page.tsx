@@ -1,65 +1,78 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Sparkles, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    // Simple local authentication (Bypassed temporarily)
+    localStorage.setItem('crm_auth', 'true');
+    router.push('/dashboard');
+    setLoading(false);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen flex items-center justify-center bg-[#F4F4F5]">
+      <div className="relative w-full max-w-[400px] px-6">
+        
+        {/* Logo & Title */}
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[#09090B] mb-4 shadow-sm">
+            <Sparkles className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-semibold text-[#09090B] tracking-tight">
+            Welcome back
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-[#52525B] mt-2 text-sm">
+            Sign in to your NexusAI workspace
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Login Form */}
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-[#E4E4E7] animate-fade-in stagger-2">
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Email and Password fields temporarily removed */}
+            <div className="text-center text-sm text-[#52525B] pb-2">
+              Login is temporarily open. Click Sign In to continue.
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              className="w-full mt-2 h-10"
+            >
+              {loading ? 'Signing in...' : (
+                <span className="flex items-center justify-center gap-2">
+                  Sign In
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              )}
+            </Button>
+          </form>
+
+          {/* Demo credentials footer removed */}
         </div>
-      </main>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-[#A1A1AA] mt-8 animate-fade-in stagger-4">
+          © 2025 NexusAI Solutions.
+        </p>
+      </div>
     </div>
   );
 }

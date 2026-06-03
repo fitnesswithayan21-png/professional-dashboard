@@ -1,0 +1,418 @@
+'use client';
+
+import { useState } from 'react';
+import { useCRMStore } from '@/store/crm-store';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { 
+  Building2, 
+  Save, 
+  AlertCircle, 
+  Eye, 
+  EyeOff,
+  Cpu,
+  CreditCard,
+  Database,
+  Calendar,
+  Plug,
+  Send
+} from 'lucide-react';
+
+type SettingsTab = 'general' | 'integrations' | 'models' | 'billing';
+
+export default function SettingsPage() {
+  const { settings, setSettings } = useCRMStore();
+  const [activeTab, setActiveTab] = useState<SettingsTab>('integrations');
+  const [business, setBusiness] = useState(settings.business);
+  const [saving, setSaving] = useState(false);
+
+  // AI Models settings
+  const [defaultModel, setDefaultModel] = useState('grok-2');
+  const [temperature, setTemperature] = useState(0.7);
+
+  // Integrations State
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const toggleKeyVisibility = (key: string) => setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const [integrationStatus, setIntegrationStatus] = useState<Record<string, 'connected' | 'not_connected' | 'error'>>({
+    sheets: 'connected',
+    calendar: 'not_connected',
+    grok: 'connected',
+    telegram: 'not_connected'
+  });
+
+  const [testingInt, setTestingInt] = useState<string | null>(null);
+
+  const testIntegration = async (id: string, success: boolean = true) => {
+    setTestingInt(id);
+    await new Promise(r => setTimeout(r, 1200));
+    setIntegrationStatus(prev => ({ ...prev, [id]: success ? 'connected' : 'error' }));
+    setTestingInt(null);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await new Promise(r => setTimeout(r, 800));
+    setSettings({
+      ...settings,
+      business,
+    });
+    setSaving(false);
+  };
+
+  const tabConfig = [
+    { id: 'general' as const, label: 'General', icon: Building2 },
+    { id: 'integrations' as const, label: 'Integrations', icon: Plug },
+    { id: 'models' as const, label: 'AI Models', icon: Cpu },
+    { id: 'billing' as const, label: 'Billing', icon: CreditCard },
+  ];
+
+  const renderStatus = (status: string) => {
+    if (status === 'connected') {
+      return (
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-100/50">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Connected</span>
+        </div>
+      );
+    }
+    if (status === 'error') {
+      return (
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 border border-rose-100/50">
+          <AlertCircle className="w-3 h-3 text-rose-500" />
+          <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider">Error</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200/60">
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Not Connected</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
+        <p className="text-[13.5px] font-medium text-slate-500">Configure your workspace settings and external integrations.</p>
+        <Button 
+          variant="primary" 
+          onClick={handleSave} 
+          disabled={saving} 
+          className="gap-2 shrink-0 bg-[#2563EB] hover:bg-blue-700 h-9 px-4 text-[13px] rounded-[10px] shadow-sm"
+        >
+          <Save className="h-4 w-4" />
+          {saving ? 'Saving...' : 'Save Changes'}
+        </Button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* LEFT COLUMN: Tabs */}
+        <div className="w-full lg:w-[240px] shrink-0 flex flex-col gap-1">
+          {tabConfig.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'w-full text-left px-4 h-[42px] rounded-[12px] transition-all duration-200 flex items-center gap-3 cursor-pointer text-[13.5px]',
+                activeTab === tab.id 
+                  ? 'bg-slate-900 text-white font-semibold shadow-sm' 
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 font-medium'
+              )}
+            >
+              <tab.icon className={cn("h-[18px] w-[18px] shrink-0", activeTab === tab.id ? "text-white" : "text-slate-400")} />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="flex-1 w-full min-h-[480px]">
+          {activeTab === 'general' && (
+            <Card padding="lg" className="bg-white border border-slate-200/80 rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="pb-5 border-b border-slate-100 mb-6">
+                <h3 className="text-[16px] font-bold text-slate-900">Corporate Details</h3>
+                <p className="text-[13px] text-slate-500 mt-1 font-medium">Adjust default parameters defining timezone and operational hours.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wide">Business Name</label>
+                  <Input 
+                    value={business.businessName} 
+                    onChange={(e) => setBusiness(prev => ({ ...prev, businessName: e.target.value }))}
+                    className="h-10 rounded-[10px] bg-slate-50 border-slate-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wide">Workspace Timezone</label>
+                  <select 
+                    value={business.timezone} 
+                    onChange={(e) => setBusiness(prev => ({ ...prev, timezone: e.target.value }))}
+                    className="flex h-10 w-full rounded-[10px] border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 cursor-pointer transition-colors font-medium"
+                  >
+                    <option value="America/New_York">Eastern Time (ET)</option>
+                    <option value="America/Chicago">Central Time (CT)</option>
+                    <option value="America/Denver">Mountain Time (MT)</option>
+                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {activeTab === 'integrations' && (
+            <div className="space-y-6">
+              <div className="pb-2">
+                <h3 className="text-[18px] font-bold text-slate-900 tracking-tight">Integrations & Credentials</h3>
+                <p className="text-[13.5px] text-slate-500 mt-1 font-medium">
+                  Connect your external services and authenticate your workspace.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                
+                {/* 1. Google Sheets */}
+                <div className="p-6 rounded-[24px] bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-[14px] bg-emerald-50 border border-emerald-100/50 flex items-center justify-center shrink-0 shadow-sm">
+                        <Database className="h-[22px] w-[22px] text-emerald-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-[15px] font-bold text-slate-900 tracking-tight">Google Sheets Database</h4>
+                        <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">Used as the CRM database.</p>
+                      </div>
+                    </div>
+                    {renderStatus(integrationStatus.sheets)}
+                  </div>
+                  <div className="space-y-4 flex-1 mb-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client ID</label>
+                      <div className="relative">
+                        <Input type={showKeys['g_client'] ? 'text' : 'password'} placeholder="client-id.apps.googleusercontent.com" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" defaultValue="98234710-example.apps.googleusercontent.com" />
+                        <button onClick={() => toggleKeyVisibility('g_client')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
+                          {showKeys['g_client'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client Secret</label>
+                      <div className="relative">
+                        <Input type={showKeys['g_secret'] ? 'text' : 'password'} placeholder="GOCSPX-..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" defaultValue="GOCSPX-abc123def456ghi789" />
+                        <button onClick={() => toggleKeyVisibility('g_secret')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
+                          {showKeys['g_secret'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Spreadsheet URL</label>
+                      <Input type="text" placeholder="https://docs.google.com/spreadsheets/d/..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" defaultValue="https://docs.google.com/spreadsheets/d/1XyZ..." />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
+                    <Button variant="secondary" onClick={() => testIntegration('sheets')} disabled={testingInt === 'sheets'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                      {testingInt === 'sheets' ? 'Testing...' : 'Test Connection'}
+                    </Button>
+                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                  </div>
+                </div>
+
+                {/* 2. Google Calendar */}
+                <div className="p-6 rounded-[24px] bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-[14px] bg-blue-50 border border-blue-100/50 flex items-center justify-center shrink-0 shadow-sm">
+                        <Calendar className="h-[22px] w-[22px] text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-[15px] font-bold text-slate-900 tracking-tight">Google Calendar</h4>
+                        <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">Appointment management.</p>
+                      </div>
+                    </div>
+                    {renderStatus(integrationStatus.calendar)}
+                  </div>
+                  <div className="space-y-4 flex-1 mb-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client ID</label>
+                      <div className="relative">
+                        <Input type={showKeys['cal_client'] ? 'text' : 'password'} placeholder="client-id.apps.googleusercontent.com" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" />
+                        <button onClick={() => toggleKeyVisibility('cal_client')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
+                          {showKeys['cal_client'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client Secret</label>
+                      <div className="relative">
+                        <Input type={showKeys['cal_secret'] ? 'text' : 'password'} placeholder="GOCSPX-..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" />
+                        <button onClick={() => toggleKeyVisibility('cal_secret')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
+                          {showKeys['cal_secret'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Calendar ID (Optional)</label>
+                      <Input type="text" placeholder="primary or c_...group.calendar.google.com" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
+                    <Button variant="secondary" onClick={() => testIntegration('calendar', false)} disabled={testingInt === 'calendar'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                      {testingInt === 'calendar' ? 'Testing...' : 'Test Connection'}
+                    </Button>
+                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                  </div>
+                </div>
+
+                {/* 3. Grok AI */}
+                <div className="p-6 rounded-[24px] bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-[14px] bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 shadow-sm">
+                        <span className="text-white font-black text-[22px] leading-none">X</span>
+                      </div>
+                      <div>
+                        <h4 className="text-[15px] font-bold text-slate-900 tracking-tight">Grok AI</h4>
+                        <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">Dashboard Intelligence.</p>
+                      </div>
+                    </div>
+                    {renderStatus(integrationStatus.grok)}
+                  </div>
+                  <div className="space-y-4 flex-1 mb-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Grok API Key</label>
+                      <div className="relative">
+                        <Input type={showKeys['grok_key'] ? 'text' : 'password'} placeholder="xai-..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" defaultValue="xai-sk-abc123def456" />
+                        <button onClick={() => toggleKeyVisibility('grok_key')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
+                          {showKeys['grok_key'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
+                    <Button variant="secondary" onClick={() => testIntegration('grok')} disabled={testingInt === 'grok'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                      {testingInt === 'grok' ? 'Validating...' : 'Validate API Key'}
+                    </Button>
+                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save API Key</Button>
+                  </div>
+                </div>
+
+                {/* 4. Telegram Bot */}
+                <div className="p-6 rounded-[24px] bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-[14px] bg-[#0088cc]/10 border border-[#0088cc]/20 flex items-center justify-center shrink-0 shadow-sm">
+                        <Send className="h-[22px] w-[22px] text-[#0088cc] -ml-0.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-[15px] font-bold text-slate-900 tracking-tight">Telegram Bot</h4>
+                        <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">Conversation Management.</p>
+                      </div>
+                    </div>
+                    {renderStatus(integrationStatus.telegram)}
+                  </div>
+                  <div className="space-y-4 flex-1 mb-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bot Token</label>
+                      <div className="relative">
+                        <Input type={showKeys['tg_token'] ? 'text' : 'password'} placeholder="123456789:ABCdefGHIjkl..." className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" />
+                        <button onClick={() => toggleKeyVisibility('tg_token')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
+                          {showKeys['tg_token'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Webhook URL (Optional)</label>
+                      <Input type="text" placeholder="https://api.yourdomain.com/webhook/telegram" className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
+                    <Button variant="secondary" onClick={() => testIntegration('telegram', false)} disabled={testingInt === 'telegram'} className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 font-semibold border-slate-200/80 hover:bg-slate-50 shadow-sm text-slate-700">
+                      {testingInt === 'telegram' ? 'Testing...' : 'Test Bot'}
+                    </Button>
+                    <Button variant="primary" className="h-[40px] px-4 text-[13px] rounded-[10px] flex-1 bg-[#2563EB] hover:bg-blue-700 font-semibold shadow-[0_2px_8px_rgba(37,99,235,0.25)]">Save Credentials</Button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'models' && (
+            <Card padding="lg" className="bg-white border border-slate-200/80 rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="pb-5 border-b border-slate-100 mb-6">
+                <h3 className="text-[16px] font-bold text-slate-900">AI Models</h3>
+                <p className="text-[13px] text-slate-500 mt-1 font-medium">Optimize AI parameters and behaviors.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wide">Default Model</label>
+                  <select 
+                    value={defaultModel} 
+                    onChange={(e) => setDefaultModel(e.target.value)}
+                    className="flex h-10 w-full rounded-[10px] border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] text-slate-900 focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 cursor-pointer transition-colors font-medium"
+                  >
+                    <option value="grok-2">Grok-2 (Recommended)</option>
+                    <option value="gpt-4o">GPT-4o (Fast)</option>
+                    <option value="claude-3-5">Claude 3.5 Sonnet</option>
+                  </select>
+                </div>
+                <div className="space-y-2 flex flex-col justify-center">
+                  <div className="flex justify-between text-[12px] font-bold text-slate-500 uppercase tracking-wide mb-1">
+                    <span>Temperature</span>
+                    <span className="text-[#2563EB]">{temperature}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="1" 
+                    step="0.1" 
+                    value={temperature}
+                    onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                    className="w-full h-1.5 rounded-full bg-slate-200 appearance-none cursor-pointer accent-blue-600" 
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-bold">
+                    <span>Strict</span>
+                    <span>Creative</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {activeTab === 'billing' && (
+            <Card padding="lg" className="bg-white border border-slate-200/80 rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="pb-5 border-b border-slate-100 mb-6">
+                <h3 className="text-[16px] font-bold text-slate-900">Billing & Plan</h3>
+                <p className="text-[13px] text-slate-500 mt-1 font-medium">Review API usage and subscription level.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
+                <div className="p-5 rounded-[16px] bg-slate-50 border border-slate-200 flex flex-col justify-between h-[120px]">
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Current Plan</span>
+                    <span className="text-[16px] font-bold text-slate-900 mt-1 block tracking-tight">Enterprise SaaS Plan</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 w-fit">
+                    Active
+                  </span>
+                </div>
+                <div className="p-5 rounded-[16px] bg-slate-50 border border-slate-200 flex flex-col justify-between h-[120px]">
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Credit Usage</span>
+                    <span className="text-[16px] font-bold text-slate-900 mt-1 block tracking-tight">$148.20 / $500.00 Limit</span>
+                  </div>
+                  <span className="text-[11px] text-slate-400 font-medium block">
+                    Resets next month
+                  </span>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
