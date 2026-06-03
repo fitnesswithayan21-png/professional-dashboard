@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useCRMStore } from '@/store/crm-store';
+import { supabase } from '@/lib/supabase';
 import {
   LayoutDashboard, Users, Calendar, MessageSquare,
   Brain, BookOpen, BarChart3, Settings,
@@ -30,10 +32,29 @@ const NAV = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { sidebarOpen, setSidebarOpen } = useCRMStore();
+  const [userEmail, setUserEmail] = useState<string>('Loading...');
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      } else {
+        setUserEmail('Admin User');
+      }
+    };
+    getUser();
+  }, []);
 
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === href : pathname.startsWith(href);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/auth/login');
+  };
 
   return (
     <aside
@@ -113,20 +134,18 @@ export function Sidebar() {
           !sidebarOpen && 'justify-center px-0 py-3'
         )}>
           <div className="h-7 w-7 rounded-full bg-[#2563EB] flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-xs">
-            AD
+            {userEmail === 'Loading...' ? '..' : userEmail.charAt(0).toUpperCase()}
           </div>
           {sidebarOpen && (
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold text-white truncate leading-none">Admin Owner</p>
-              <p className="text-[10px] text-slate-500 truncate mt-1">owner@nexusai.com</p>
+              <p className="text-[12px] font-semibold text-white truncate leading-none">Workspace Admin</p>
+              <p className="text-[10px] text-slate-500 truncate mt-1">{userEmail}</p>
             </div>
           )}
           {sidebarOpen && (
-            <Link href="/" className="shrink-0">
-              <button className="p-1.5 rounded-md text-slate-505 hover:text-rose-500 hover:bg-slate-800 transition-colors cursor-pointer">
-                <LogOut className="h-4 w-4" />
-              </button>
-            </Link>
+            <button onClick={handleLogout} className="shrink-0 p-1.5 rounded-md text-slate-500 hover:text-rose-500 hover:bg-slate-800 transition-colors cursor-pointer">
+              <LogOut className="h-4 w-4" />
+            </button>
           )}
         </div>
       </div>

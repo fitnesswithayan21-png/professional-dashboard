@@ -206,12 +206,8 @@ export const useCRMStore = create<CRMState>()(
       // Database Actions
       loadSettingsFromDB: async () => {
         try {
-          // 1. Ensure anonymous session
+          // 1. Get authenticated session
           let { data: { session } } = await supabase.auth.getSession();
-          if (!session) {
-            const { data } = await supabase.auth.signInAnonymously();
-            session = data?.session;
-          }
 
           if (session?.user) {
             // 2. Fetch user's settings from Supabase
@@ -265,12 +261,8 @@ export const useCRMStore = create<CRMState>()(
 
       saveSettingsToDB: async (newSettings: Settings) => {
         try {
-          // 1. Ensure session
+          // 1. Get authenticated session
           let { data: { session } } = await supabase.auth.getSession();
-          if (!session) {
-            const { data } = await supabase.auth.signInAnonymously();
-            session = data?.session;
-          }
 
           if (session?.user) {
             const payload = {
