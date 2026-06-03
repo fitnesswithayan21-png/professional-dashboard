@@ -150,7 +150,7 @@ export default function SettingsPage() {
     setSaving(true);
     
     const updateStatus = { ...integrationStatus };
-    if (id === 'sheets' && googleSheets.clientId) updateStatus.sheets = 'connected';
+    if (id === 'sheets' && (googleSheets.clientId || googleSheets.clientSecret)) updateStatus.sheets = 'connected';
     if (id === 'calendar' && googleCalendar.clientId) updateStatus.calendar = 'connected';
     if (id === 'grok' && apiKeys.grok) updateStatus.grok = 'connected';
     if (id === 'telegram' && telegram.botToken) updateStatus.telegram = 'connected';
