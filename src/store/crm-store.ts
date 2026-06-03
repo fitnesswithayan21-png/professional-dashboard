@@ -184,10 +184,10 @@ export const useCRMStore = create<CRMState>()(
         set({ isRefreshing: true, sheetsStatus: 'loading', sheetsError: null });
         try {
           // Always read the latest settings — avoid stale closure
-          const { spreadsheetUrl, connected } = useCRMStore.getState().settings.googleSheets;
+          const { spreadsheetUrl, clientSecret, clientId } = useCRMStore.getState().settings.googleSheets;
 
-          // If Google Sheets is not configured in Settings, show not_connected state
-          if (!connected || !spreadsheetUrl) {
+          // If Google Sheets credentials are not present, show not_connected state
+          if (!spreadsheetUrl || (!clientSecret && !clientId)) {
             console.info("Google Sheets not configured — using existing store data.");
             set({ isRefreshing: false, sheetsStatus: 'not_connected' });
             return;
