@@ -82,6 +82,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { leadId, message } = body;
 
+    console.log(`[DEBUG] Received manual message request for lead_id: ${leadId}`);
+    console.log(`[DEBUG] Outgoing message: "${message}"`);
+
     if (!leadId || !message) {
       return NextResponse.json({ success: false, error: "Missing leadId or message" }, { status: 400 });
     }
@@ -91,8 +94,14 @@ export async function POST(req: NextRequest) {
     const lead = leads.find((l) => l.id === leadId);
 
     if (!lead) {
+      console.log(`[DEBUG] Lead ${leadId} not found in Google Sheets.`);
       return NextResponse.json({ success: false, error: "Lead not found in Google Sheets" }, { status: 404 });
     }
+
+    console.log(`[DEBUG] Selected lead_id: ${lead.id}`);
+    console.log(`[DEBUG] conversation_id: ${lead.conversationId}`);
+    console.log(`[DEBUG] source: ${lead.source}`);
+    console.log(`[DEBUG] telegram token loaded: ${telegram_bot_token ? "YES (hidden)" : "NO"}`);
 
     if (lead.source?.toLowerCase() !== "telegram") {
       return NextResponse.json({ success: false, error: `Cannot send Telegram message to source: ${lead.source}` }, { status: 400 });
@@ -104,6 +113,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Send via Telegram API
+    console.log(`[DEBUG] Sending Telegram API request to chat_id: ${chatId}`);
     const tgRes = await fetch(`https://api.telegram.org/bot${telegram_bot_token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -115,9 +125,11 @@ export async function POST(req: NextRequest) {
 
     if (!tgRes.ok) {
       const errorText = await tgRes.text();
-      console.error("Telegram API Error:", errorText);
+      console.error("[DEBUG] Telegram API Error response:", errorText);
       return NextResponse.json({ success: false, error: "Message delivery failed.", details: errorText }, { status: tgRes.status });
     }
+
+    console.log(`[DEBUG] Telegram response OK. Message delivered to chat_id: ${chatId}`);
 
     // 7. Store message in Google Sheets
     const messageId = `msg_${Date.now()}`;
