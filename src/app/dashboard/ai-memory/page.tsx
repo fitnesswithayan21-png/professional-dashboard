@@ -259,7 +259,7 @@ export default function AIMemoryPage() {
 
                 {/* ── Footer ──────────────────────────────────────────────── */}
                 <div className="mx-6 h-px bg-slate-100" />
-                <div className="flex items-center justify-end px-6 py-4">
+                <div className="flex items-center justify-end px-6 py-5 min-h-[60px]">
                   <Link
                     href={`/dashboard/conversations?leadId=${leadId}`}
                     className="flex items-center gap-1.5 text-[13.5px] font-bold text-blue-600 hover:text-blue-700 transition-colors group/link"
