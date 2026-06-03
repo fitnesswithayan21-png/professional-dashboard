@@ -46,6 +46,8 @@ export interface Appointment {
   leadName: string;
   appointmentDate: string;
   appointmentTime: string;
+  appointmentStart?: string;   // ISO datetime from appointment_start column
+  appointmentEnd?: string;     // ISO datetime from appointment_end column
   meetingLink: string;
   status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no-show";
   reminderSent: boolean;

@@ -186,13 +186,14 @@ class GoogleSheetsService {
     return data.map((row) => ({
       id: row[0] || "",
       leadId: row[1] || "",
-      leadName: row[2] || "",
-      appointmentDate: row[3] || "",
-      appointmentTime: row[4] || "",
-      meetingLink: row[5] || "",
-      status: (row[6] as Appointment["status"]) || "scheduled",
-      reminderSent: row[7] === "TRUE",
-      notes: row[8] || "",
+      leadName: "",                          // resolved on the frontend via leads store
+      meetingLink: row[2] || "",            // col C: appointment_link
+      appointmentDate: row[3] || "",        // col D: date
+      appointmentTime: row[4] || "",        // col E: time
+      appointmentStart: row[5] || "",       // col F: appointment_start
+      appointmentEnd: row[6] || "",         // col G: appointment_end
+      status: (row[7] as Appointment["status"]) || "scheduled", // col H: status
+      reminderSent: row[8] === "TRUE",      // col I: reminder_sent
     }));
   }
 
