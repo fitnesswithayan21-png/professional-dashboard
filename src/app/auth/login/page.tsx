@@ -52,9 +52,9 @@ export default function LoginPage() {
 
   return (
     <div>
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h2>
-        <p className="text-sm text-slate-500 mt-1 font-medium">Sign in to your CRM dashboard</p>
+      <div className="text-left mb-8">
+        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome back</h2>
+        <p className="text-[15px] text-slate-500 mt-2 font-medium">Sign in to your CRM dashboard</p>
       </div>
 
       {error && (
