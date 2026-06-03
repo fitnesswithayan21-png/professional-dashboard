@@ -307,46 +307,61 @@ export default function SettingsPage() {
                     {renderStatus(integrationStatus.sheets)}
                   </div>
                   <div className="space-y-4 flex-1 mb-6">
+
+                    {/* Step-by-step instruction */}
+                    <div className="flex items-start gap-2.5 p-3 rounded-[10px] bg-blue-50 border border-blue-100">
+                      <div className="mt-0.5 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                        <span className="text-[9px] font-black text-white">?</span>
+                      </div>
+                      <p className="text-[11.5px] text-blue-800 font-medium leading-relaxed">
+                        Go to <strong>Google Cloud Console → IAM → Service Accounts → Keys → Add Key → JSON</strong>. Download the file, open it in Notepad, then paste the entire content below.
+                      </p>
+                    </div>
+
+                    {/* Service Account JSON textarea */}
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client ID</label>
-                      <div className="relative">
-                        <Input 
-                          type={showKeys['g_client'] ? 'text' : 'password'} 
-                          value={googleSheets.clientId}
-                          onChange={(e) => setGoogleSheets(prev => ({ ...prev, clientId: e.target.value }))}
-                          placeholder="client-id.apps.googleusercontent.com" 
-                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
-                        />
-                        <button onClick={() => toggleKeyVisibility('g_client')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
-                          {showKeys['g_client'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Service Account JSON Key</label>
+                        <button
+                          onClick={() => toggleKeyVisibility('g_json')}
+                          className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-blue-600 transition-colors"
+                        >
+                          {showKeys['g_json'] ? <><EyeOff className="h-3 w-3" /> Hide</> : <><Eye className="h-3 w-3" /> Show</>}
                         </button>
                       </div>
+                      <textarea
+                        value={showKeys['g_json'] ? googleSheets.clientSecret : (googleSheets.clientSecret ? '••••••••••••••••••••••••••••••••' : '')}
+                        onChange={(e) => {
+                          // Only update when shown (not masked)
+                          if (showKeys['g_json']) {
+                            setGoogleSheets(prev => ({ ...prev, clientSecret: e.target.value, clientId: '' }));
+                          }
+                        }}
+                        onFocus={() => setShowKeys(prev => ({ ...prev, g_json: true }))}
+                        placeholder={'Paste your Service Account JSON here...\n{\n  "type": "service_account",\n  "project_id": "...",\n  "private_key": "-----BEGIN RSA PRIVATE KEY-----\\n...",\n  "client_email": "...@....iam.gserviceaccount.com",\n  ...\n}'}
+                        rows={6}
+                        className="w-full rounded-[10px] bg-slate-50 border border-slate-200/60 px-3 py-2.5 text-[11.5px] font-mono text-slate-800 focus:outline-none focus:border-blue-400 focus:bg-white resize-none transition-colors placeholder:text-slate-300"
+                      />
+                      {googleSheets.clientSecret && (
+                        <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> JSON key saved
+                        </p>
+                      )}
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Google Client Secret</label>
-                      <div className="relative">
-                        <Input 
-                          type={showKeys['g_secret'] ? 'text' : 'password'} 
-                          value={googleSheets.clientSecret}
-                          onChange={(e) => setGoogleSheets(prev => ({ ...prev, clientSecret: e.target.value }))}
-                          placeholder="GOCSPX-..." 
-                          className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 pr-10 font-mono focus:bg-white" 
-                        />
-                        <button onClick={() => toggleKeyVisibility('g_secret')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#2563EB] transition-colors cursor-pointer">
-                          {showKeys['g_secret'] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
+
+                    {/* Spreadsheet URL */}
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Spreadsheet URL</label>
-                      <Input 
-                        type="text" 
+                      <Input
+                        type="text"
                         value={googleSheets.spreadsheetUrl}
                         onChange={(e) => setGoogleSheets(prev => ({ ...prev, spreadsheetUrl: e.target.value }))}
-                        placeholder="https://docs.google.com/spreadsheets/d/..." 
-                        className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white" 
+                        placeholder="https://docs.google.com/spreadsheets/d/..."
+                        className="h-[40px] text-[13px] rounded-[10px] bg-slate-50 border-slate-200/60 font-mono focus:bg-white"
                       />
+                      <p className="text-[11px] text-slate-400 font-medium">Paste the full URL of your Google Sheet.</p>
                     </div>
+
                   </div>
                   <div className="flex items-center gap-3 pt-5 border-t border-slate-100 mt-auto">
                     <Button
