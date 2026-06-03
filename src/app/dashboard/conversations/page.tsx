@@ -286,7 +286,6 @@ export default function ConversationsPage() {
                   return (
                     <div key={conv.id || idx}>
                       {!isAI ? (
-                        {/* ── Incoming: Lead/Customer (LEFT, white) ── */}
                         <div className="flex justify-start" style={{ marginTop: '8px', marginBottom: '8px' }}>
                           <div style={{
                             position: 'relative',
@@ -317,7 +316,6 @@ export default function ConversationsPage() {
                           </div>
                         </div>
                       ) : (
-                        {/* ── NexusAI reply — RIGHT, light green ── */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', marginBottom: '8px' }}>
                           <div style={{
                             position: 'relative',
