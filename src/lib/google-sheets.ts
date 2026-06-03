@@ -167,14 +167,14 @@ class GoogleSheetsService {
 
   // ===== AI MEMORY =====
   async getMemories(): Promise<AIMemory[]> {
-    const data = await this.getSheetData(`${SHEETS.AI_MEMORY}!A2:F`);
-    return data.map((row) => ({
-      id: row[0] || "",
-      leadId: row[1] || "",
-      leadName: row[2] || "",
-      memoryType: (row[3] as AIMemory["memoryType"]) || "context",
-      memoryValue: row[4] || "",
-      lastUpdated: row[5] || new Date().toISOString(),
+    const data = await this.getSheetData(`${SHEETS.AI_MEMORY}!A2:D`);
+    return data.map((row, idx) => ({
+      id: `mem_${idx}_${row[0]}_${row[1]}`,  // synthetic id
+      leadId: row[0] || "",
+      leadName: "",                           // resolved via leads store
+      memoryType: (row[1] as AIMemory["memoryType"]) || "context",
+      memoryValue: row[2] || "",
+      lastUpdated: row[3] || new Date().toISOString(),
     }));
   }
 
