@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Google Sheets credentials invalid" }, { status: 400 });
     }
 
-    await sheetsService.init(spreadsheetId, credentialsJson);
+    await sheetsService.initialize(spreadsheetId, credentialsJson);
 
     // 4. Parse request body
     const body = await req.json();
