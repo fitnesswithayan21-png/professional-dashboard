@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { useCRMStore } from '@/store/crm-store';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -198,53 +199,32 @@ ${leadMems || 'None'}`;
     
     const messageText = inputText.trim();
     setInputText('');
-    
-    const botToken = settings?.telegram?.botToken;
-    const chatId = activeLead.conversationId;
-
-    if (!botToken) {
-      alert("Telegram Bot Token is not configured. Go to Settings -> Credentials.");
-      return;
-    }
-
-    if (!chatId) {
-      alert("This lead does not have a Telegram conversation ID associated.");
-      return;
-    }
-
-    const messageId = `msg_${Date.now()}`;
-    const timestamp = new Date().toISOString();
-
-    const newMsg: Conversation = {
-      id: messageId,
-      leadId: activeLeadId,
-      sender: 'owner',
-      message: messageText,
-      channel: activeLead.source || 'telegram',
-      messageType: 'text',
-      timestamp
-    };
 
     try {
-      const res = await fetch('/api/telegram/send', {
+      const res = await fetch('/api/messages/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
         body: JSON.stringify({
-          botToken,
-          chatId,
-          text: messageText,
-          googleSheetsConfig: settings?.googleSheets,
-          messageData: newMsg
+          leadId: activeLeadId,
+          message: messageText
         })
       });
 
+      const data = await res.json();
+      
       if (!res.ok) {
-        throw new Error("Message could not be delivered.");
+        throw new Error(data.error || data.details || "Message could not be delivered.");
       }
 
-      setConversations([...conversations, newMsg]);
-    } catch (err) {
+      if (data.messageData) {
+        setConversations([...conversations, data.messageData]);
+      }
+    } catch (err: any) {
       alert("Message could not be delivered.");
+      console.error(err);
       setInputText(messageText);
     }
   };
