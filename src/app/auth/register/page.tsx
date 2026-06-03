@@ -61,19 +61,19 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="text-center py-4">
-        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+      <div className="w-full text-center py-8">
+        <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-emerald-200">
+          <CheckCircle2 className="w-10 h-10 text-emerald-600" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Check your email</h2>
-        <p className="text-sm text-slate-500 mt-2 font-medium">
-          We sent a confirmation link to <span className="text-slate-900 font-bold">{email}</span>. 
-          Please click the link to activate your account.
+        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Check your email</h2>
+        <p className="text-base text-slate-500 mt-3 font-medium max-w-[320px] mx-auto">
+          We sent a confirmation link to <br/><span className="text-slate-900 font-bold">{email}</span>. 
+          <br/>Please click the link to activate your account.
         </p>
         <Button 
           variant="secondary"
           onClick={() => router.push('/auth/login')}
-          className="mt-8 w-full h-[44px] rounded-[12px] font-semibold"
+          className="mt-10 w-full h-12 rounded-xl font-bold text-base bg-slate-100 hover:bg-slate-200 text-slate-700"
         >
           Return to sign in
         </Button>
@@ -82,25 +82,25 @@ export default function RegisterPage() {
   }
 
   return (
-    <div>
-      <div className="text-left mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create an account</h2>
-        <p className="text-[15px] text-slate-500 mt-2 font-medium">Start automating your CRM today</p>
+    <div className="w-full">
+      <div className="text-left mb-10">
+        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Create an account</h2>
+        <p className="text-base text-slate-500 mt-2 font-medium">Start automating your CRM today</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 rounded-[12px] bg-rose-50 border border-rose-100 flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
-          <p className="text-[13px] text-rose-700 font-medium leading-snug">{error}</p>
+        <div className="mb-8 p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-rose-600 mt-0.5 shrink-0" />
+          <p className="text-sm text-rose-700 font-medium leading-relaxed">{error}</p>
         </div>
       )}
 
       <button
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 h-[44px] rounded-[12px] font-semibold text-[14px] hover:bg-slate-50 transition-all shadow-sm mb-6 disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-200 text-slate-700 h-12 rounded-xl font-bold text-base hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm mb-8 disabled:opacity-50"
       >
-        <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+        <svg viewBox="0 0 24 24" className="w-6 h-6" aria-hidden="true">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -109,59 +109,59 @@ export default function RegisterPage() {
         Sign up with Google
       </button>
 
-      <div className="relative mb-6">
+      <div className="relative mb-8">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-slate-200"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-slate-400 font-medium text-[12px] uppercase tracking-wider">Or continue with</span>
+          <span className="px-4 bg-white text-slate-400 font-bold text-xs uppercase tracking-widest">Or continue with</span>
         </div>
       </div>
 
-      <form onSubmit={handleEmailRegister} className="space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-[12px] font-bold text-slate-700 tracking-wide">Email address</label>
+      <form onSubmit={handleEmailRegister} className="space-y-5">
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-slate-700 tracking-wide">Email address</label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input 
               type="email" 
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-[44px] rounded-[12px] bg-slate-50 border-slate-200/80 focus:bg-white" 
+              className="pl-11 h-12 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base transition-all" 
               placeholder="you@company.com"
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-[12px] font-bold text-slate-700 tracking-wide">Password</label>
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-slate-700 tracking-wide">Password</label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
+            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input 
               type="password" 
               required
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-[44px] rounded-[12px] bg-slate-50 border-slate-200/80 focus:bg-white" 
+              className="pl-11 h-12 rounded-xl bg-slate-50 border-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base transition-all" 
               placeholder="••••••••"
             />
           </div>
-          <p className="text-[11px] text-slate-500 font-medium pt-1">Must be at least 6 characters.</p>
+          <p className="text-[12px] text-slate-500 font-medium pt-1">Must be at least 6 characters.</p>
         </div>
 
         <Button 
           type="submit" 
           disabled={loading}
-          className="w-full h-[44px] rounded-[12px] bg-[#2563EB] hover:bg-blue-700 text-[14px] font-semibold shadow-[0_4px_14px_rgba(37,99,235,0.25)] transition-all mt-4"
+          className="w-full h-12 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-base font-bold shadow-lg shadow-blue-600/25 transition-all mt-6"
         >
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create account'}
         </Button>
       </form>
 
-      <div className="mt-8 text-center">
-        <p className="text-[13px] text-slate-500 font-medium">
+      <div className="mt-10 text-center">
+        <p className="text-sm text-slate-500 font-medium">
           Already have an account?{' '}
           <Link href="/auth/login" className="text-blue-600 font-bold hover:underline">
             Sign in
