@@ -173,6 +173,14 @@ function AnalyticsCard({
   );
 }
 
+function KPIContent({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+  return (
+    <div className={`pt-[32px] px-[32px] pb-[24px] flex flex-col h-full ${className}`}>
+      {children}
+    </div>
+  );
+}
+
 function ChartContainer({ children, className = '' }: { children: React.ReactNode, className?: string }) {
   return (
     <div className={`p-6 bg-slate-50/50 rounded-xl border border-slate-100 ${className}`}>
@@ -200,40 +208,58 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <AnalyticsCard highlight={highlight} className="h-full flex flex-col justify-between">
-      {/* Header & Description */}
-      <div>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
-            <Icon size={16} style={{ color }} strokeWidth={2.5} />
-          </div>
-          <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest">{label}</p>
+    <AnalyticsCard highlight={highlight} noPadding className="h-full">
+      <KPIContent>
+        {/* Icon */}
+        <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
+          <Icon size={20} style={{ color }} strokeWidth={2.5} />
         </div>
-        {sub && <p className="text-[13px] font-medium text-[#94A3B8] ml-11">{sub}</p>}
-      </div>
 
-      {/* Main Metric */}
-      <div className="mt-8 mb-6">
-        <p className="text-[48px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
-      </div>
+        {/* Gap 20px between Icon and Metric */}
+        <div style={{ height: '20px' }} />
 
-      {/* Supporting Info */}
-      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center h-[40px]">
-        {trend ? (
-          <div className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
-            trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
-            trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
-            'text-[#64748B] bg-[#F1F5F9]'
-          }`}>
-            {trend.type === 'up' && <TrendingUp size={14} strokeWidth={2.5} />}
-            {trend.type === 'down' && <TrendingDown size={14} strokeWidth={2.5} />}
-            {trend.type === 'neutral' && <Minus size={14} strokeWidth={2.5} />}
-            {trend.value}
-          </div>
-        ) : (
-          <span className="text-[13px] font-medium text-slate-400/50">No trend data</span>
-        )}
-      </div>
+        {/* Metric */}
+        <div>
+          <p className="text-[44px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
+        </div>
+
+        {/* Gap 12px between Metric and Title */}
+        <div style={{ height: '12px' }} />
+
+        {/* Title */}
+        <div>
+          <p className="text-[14px] font-bold text-[#64748B] uppercase tracking-widest">{label}</p>
+        </div>
+
+        {/* Gap 8px between Title and Description */}
+        <div style={{ height: '8px' }} />
+
+        {/* Description (Supporting Info / sub) */}
+        <div className="min-h-[20px]">
+          {sub && <p className="text-[13px] font-medium text-[#94A3B8]">{sub}</p>}
+        </div>
+
+        {/* Gap 20px between Description and Footer */}
+        <div style={{ height: '20px' }} />
+
+        {/* Footer (Trend) */}
+        <div className="mt-auto border-t border-slate-100 pt-4 flex items-center h-[40px]">
+          {trend ? (
+            <div className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
+              trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
+              trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
+              'text-[#64748B] bg-[#F1F5F9]'
+            }`}>
+              {trend.type === 'up' && <TrendingUp size={14} strokeWidth={2.5} />}
+              {trend.type === 'down' && <TrendingDown size={14} strokeWidth={2.5} />}
+              {trend.type === 'neutral' && <Minus size={14} strokeWidth={2.5} />}
+              {trend.value}
+            </div>
+          ) : (
+            <span className="text-[13px] font-medium text-slate-400/50">No trend data</span>
+          )}
+        </div>
+      </KPIContent>
     </AnalyticsCard>
   );
 }
@@ -871,60 +897,70 @@ export default function AnalyticsPage() {
             <div className="mb-6">
               <SectionHeader icon={ChevronRight} title="Lead Pipeline" subtitle="Breakdown by pipeline stage" />
             </div>
-            <AnalyticsCard className="flex-1">
-              {leads.length === 0 ? (
-                <PremiumEmptyState icon={Users} title="No Leads Yet" desc="Your pipeline will populate here as new leads enter the system." />
-              ) : (
-                <div className="space-y-8 mt-2">
-                  {pipelineData.map(stage => {
-                    const pct = maxPipelineCount > 0 ? (stage.count / maxPipelineCount) * 100 : 0;
-                    const stageIcons: Record<string, React.ElementType> = {
-                      new: Users,
-                      contacted: PhoneCall,
-                      qualified: CheckCircle2,
-                      booked: Calendar,
-                      'proposal sent': MessageSquare,
-                      won: Target,
-                      lost: XCircle
-                    };
-                    const StageIcon = stageIcons[stage.key] || ArrowRight;
+            <AnalyticsCard className="flex-1" noPadding>
+              <KPIContent>
+                {leads.length === 0 ? (
+                  <PremiumEmptyState icon={Users} title="No Leads Yet" desc="Your pipeline will populate here as new leads enter the system." />
+                ) : (
+                  <div className="flex flex-col" style={{ gap: '20px' }}>
+                    {pipelineData.map(stage => {
+                      const pct = maxPipelineCount > 0 ? (stage.count / maxPipelineCount) * 100 : 0;
+                      const stageIcons: Record<string, React.ElementType> = {
+                        new: Users,
+                        contacted: PhoneCall,
+                        qualified: CheckCircle2,
+                        booked: Calendar,
+                        'proposal sent': MessageSquare,
+                        won: Target,
+                        lost: XCircle
+                      };
+                      const StageIcon = stageIcons[stage.key] || ArrowRight;
 
-                    return (
-                      <div key={stage.key} className="flex items-center gap-6">
-                        <div className="flex items-center gap-4 w-48 shrink-0">
-                          <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0" style={{ background: `${stage.color}15` }}>
-                            <StageIcon size={18} style={{ color: stage.color }} strokeWidth={2} />
+                      return (
+                        <div key={stage.key} className="flex items-center">
+                          <div className="flex items-center w-[160px] shrink-0">
+                            <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0" style={{ background: `${stage.color}15` }}>
+                              <StageIcon size={18} style={{ color: stage.color }} strokeWidth={2} />
+                            </div>
+                            <div style={{ width: '16px' }} />
+                            <span className="text-[15px] font-bold text-[#334155] truncate">
+                              {stage.label}
+                            </span>
                           </div>
-                          <span className="text-[15px] font-bold text-[#334155]">
-                            {stage.label}
-                          </span>
-                        </div>
-                        <div className="flex-1 flex items-center h-4">
-                          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner flex items-center relative">
-                            {stage.count === 0 ? (
-                              <div className="h-3 w-3 rounded-full absolute left-0 top-0 shadow-sm" style={{ background: stage.color }} />
-                            ) : (
-                              <div
-                                className="h-full rounded-full transition-all duration-1000 ease-out relative shadow-sm"
-                                style={{ 
-                                  width: `${Math.max(pct, 2)}%`, 
-                                  background: stage.color
-                                }}
-                              />
-                            )}
+                          
+                          <div style={{ width: '24px' }} className="shrink-0" />
+                          
+                          <div className="flex-1 flex items-center h-4">
+                            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner flex items-center relative">
+                              {stage.count === 0 ? (
+                                <div className="h-3 w-3 rounded-full absolute left-0 top-0 shadow-sm" style={{ background: stage.color }} />
+                              ) : (
+                                <div
+                                  className="h-full rounded-full transition-all duration-1000 ease-out relative shadow-sm"
+                                  style={{ 
+                                    width: `${Math.max(pct, 2)}%`, 
+                                    background: stage.color
+                                  }}
+                                />
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div style={{ width: '24px' }} className="shrink-0" />
+                          
+                          <div className="flex items-center justify-end shrink-0">
+                            <span className="text-[16px] font-bold text-[#0F172A] w-6 text-right">{stage.count}</span>
+                            <div style={{ width: '16px' }} />
+                            <span className={`text-[14px] font-medium w-10 text-right ${stage.count > 0 ? 'text-[#10B981]' : 'text-[#64748B]'}`}>
+                              {leads.length > 0 ? `${Math.round((stage.count / leads.length) * 100)}%` : '0%'}
+                            </span>
                           </div>
                         </div>
-                        <div className="w-24 flex items-center justify-end gap-6 shrink-0">
-                          <span className="text-[16px] font-bold text-[#0F172A] w-6 text-right">{stage.count}</span>
-                          <span className={`text-[14px] font-medium w-10 text-right ${stage.count > 0 ? 'text-[#10B981]' : 'text-[#64748B]'}`}>
-                            {leads.length > 0 ? `${Math.round((stage.count / leads.length) * 100)}%` : '0%'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </KPIContent>
             </AnalyticsCard>
           </div>
 
@@ -942,35 +978,38 @@ export default function AnalyticsPage() {
               ].map(({ label, count, color, icon: TierIcon }) => (
                 <AnalyticsCard
                   key={label}
-                  className="relative overflow-hidden h-full flex flex-col justify-between"
+                  className="relative overflow-hidden h-full"
+                  noPadding
                 >
-                  <div className="absolute -top-4 -right-4 opacity-[0.03] pointer-events-none">
-                    <TierIcon size={120} style={{ color }} />
-                  </div>
-                  
-                  {/* Header */}
-                  <div className="flex items-center gap-3 mb-1 relative z-10">
-                    <div className="h-3 w-3 rounded-full shadow-sm shrink-0" style={{ background: color }} />
-                    <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest truncate">{label}</span>
-                  </div>
+                  <KPIContent>
+                    <div className="absolute -top-4 -right-4 opacity-[0.03] pointer-events-none">
+                      <TierIcon size={120} style={{ color }} />
+                    </div>
+                    
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-1 relative z-10">
+                      <div className="h-3 w-3 rounded-full shadow-sm shrink-0" style={{ background: color }} />
+                      <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest truncate">{label}</span>
+                    </div>
 
-                  {/* Main Metric */}
-                  <div className="mt-8 mb-6 relative z-10">
-                    <p className="text-[48px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
-                  </div>
-                  
-                  {/* Supporting Info */}
-                  <div className="relative z-10 mt-auto pt-4 border-t border-slate-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[13px] font-medium text-[#64748B]">Pipeline share</span>
-                      <span className="text-[13px] font-bold" style={{ color }}>
-                        {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}%` : '0%'}
-                      </span>
+                    {/* Main Metric */}
+                    <div className="mt-8 mb-6 relative z-10">
+                      <p className="text-[48px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-1000" style={{ width: leads.length > 0 ? `${(count / leads.length) * 100}%` : '0%', background: color }} />
+                    
+                    {/* Supporting Info */}
+                    <div className="relative z-10 mt-auto pt-4 border-t border-slate-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[13px] font-medium text-[#64748B]">Pipeline share</span>
+                        <span className="text-[13px] font-bold" style={{ color }}>
+                          {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}%` : '0%'}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-1000" style={{ width: leads.length > 0 ? `${(count / leads.length) * 100}%` : '0%', background: color }} />
+                      </div>
                     </div>
-                  </div>
+                  </KPIContent>
                 </AnalyticsCard>
               ))}
             </div>
