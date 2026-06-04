@@ -39,7 +39,10 @@ import {
   Flame,
   XCircle,
   ChevronRight,
-  Info
+  Info,
+  Thermometer,
+  Snowflake,
+  Ban
 } from 'lucide-react';
 
 // ─── Strict SaaS Palette ──────────────────────────────────────────────────
@@ -137,19 +140,33 @@ function StatCard({
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl p-8 flex flex-col justify-between h-full transition-all duration-300 hover:-translate-y-1 ${
+      className={`bg-white rounded-2xl p-6 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
         highlight 
           ? 'border border-[#2563EB]/20 shadow-[0_4px_16px_rgba(37,99,235,0.08),_0_12px_32px_rgba(37,99,235,0.04)] ring-1 ring-[#2563EB]/5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.1),_0_24px_48px_rgba(37,99,235,0.06)]' 
           : 'border border-[rgba(15,23,42,0.06)] shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] hover:shadow-[0_4px_16px_rgba(15,23,42,0.06),_0_24px_48px_rgba(15,23,42,0.04)]'
       }`}
     >
-      <div className="flex flex-col gap-6 h-full">
-        <div className="flex items-start justify-between">
-          <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
-            <Icon size={20} style={{ color }} strokeWidth={2.5} />
-          </div>
-          {trend && (
-            <div className={`flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
+      <div className="flex flex-col items-start gap-4 h-full">
+        {/* Top Area */}
+        <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
+          <Icon size={22} style={{ color }} strokeWidth={2} />
+        </div>
+        
+        {/* Middle Area */}
+        <div className="mt-2 mb-2">
+          <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
+        </div>
+        
+        {/* Bottom Area */}
+        <div className="flex flex-col gap-1">
+          <p className="text-[15px] font-bold text-[#1E293B]">{label}</p>
+          {sub && <p className="text-[13px] font-medium text-[#64748B]">{sub}</p>}
+        </div>
+
+        {/* Trend Info */}
+        {trend && (
+          <div className="mt-auto pt-6 w-full">
+            <div className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
               trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
               trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
               'text-[#64748B] bg-[#F1F5F9]'
@@ -159,17 +176,8 @@ function StatCard({
               {trend.type === 'neutral' && <Minus size={14} strokeWidth={2.5} />}
               {trend.value}
             </div>
-          )}
-        </div>
-        
-        <div className="flex-1 flex flex-col justify-center py-2">
-          <p className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
-        </div>
-        
-        <div>
-          <p className="text-[15px] font-bold text-[#1E293B]">{label}</p>
-          {sub && <p className="text-[13px] font-medium text-[#64748B] mt-1.5">{sub}</p>}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -814,23 +822,47 @@ export default function AnalyticsPage() {
                 <div className="space-y-8 mt-2">
                   {pipelineData.map(stage => {
                     const pct = maxPipelineCount > 0 ? (stage.count / maxPipelineCount) * 100 : 0;
+                    const stageIcons: Record<string, React.ElementType> = {
+                      new: Users,
+                      contacted: PhoneCall,
+                      qualified: CheckCircle2,
+                      booked: Calendar,
+                      'proposal sent': MessageSquare,
+                      won: Target,
+                      lost: XCircle
+                    };
+                    const StageIcon = stageIcons[stage.key] || ArrowRight;
+
                     return (
                       <div key={stage.key} className="flex items-center gap-6">
-                        <span className="text-[14px] font-bold w-32 shrink-0 text-[#334155]">
-                          {stage.label}
-                        </span>
-                        <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                          <div
-                            className="h-full rounded-full transition-all duration-1000 ease-out"
-                            style={{ 
-                              width: `${Math.max(pct, 2)}%`, 
-                              background: `linear-gradient(90deg, ${stage.color}99, ${stage.color})` 
-                            }}
-                          />
+                        <div className="flex items-center gap-4 w-48 shrink-0">
+                          <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0" style={{ background: `${stage.color}15` }}>
+                            <StageIcon size={18} style={{ color: stage.color }} strokeWidth={2} />
+                          </div>
+                          <span className="text-[15px] font-bold text-[#334155]">
+                            {stage.label}
+                          </span>
                         </div>
-                        <div className="w-16 text-right shrink-0">
-                          <span className="text-[16px] font-bold text-[#0F172A] leading-none">{stage.count}</span>
-                          <span className="text-[12px] font-medium text-[#64748B] block mt-1">{leads.length > 0 ? `${Math.round((stage.count / leads.length) * 100)}%` : '0%'}</span>
+                        <div className="flex-1 flex items-center h-4">
+                          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner flex items-center relative">
+                            {stage.count === 0 ? (
+                              <div className="h-3 w-3 rounded-full absolute left-0 top-0 shadow-sm" style={{ background: stage.color }} />
+                            ) : (
+                              <div
+                                className="h-full rounded-full transition-all duration-1000 ease-out relative shadow-sm"
+                                style={{ 
+                                  width: `${Math.max(pct, 2)}%`, 
+                                  background: stage.color
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        <div className="w-24 flex items-center justify-end gap-6 shrink-0">
+                          <span className="text-[16px] font-bold text-[#0F172A] w-6 text-right">{stage.count}</span>
+                          <span className={`text-[14px] font-medium w-10 text-right ${stage.count > 0 ? 'text-[#10B981]' : 'text-[#64748B]'}`}>
+                            {leads.length > 0 ? `${Math.round((stage.count / leads.length) * 100)}%` : '0%'}
+                          </span>
                         </div>
                       </div>
                     );
@@ -842,23 +874,26 @@ export default function AnalyticsPage() {
 
           {/* Score Tiers */}
           <div className="flex flex-col h-full">
-            <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Pipeline quality breakdown" />
-            <div className="grid grid-cols-2 gap-6 flex-1">
+            <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Pipeline quality distribution based on lead scores." />
+            <div className="grid grid-cols-2 gap-6 flex-1 mb-6">
               {[
-                { label: 'Hot', count: scoreTiers.hot, color: PALETTE.danger },
-                { label: 'Warm', count: scoreTiers.warm, color: PALETTE.warning },
-                { label: 'Cold', count: scoreTiers.cold, color: PALETTE.primary },
-                { label: 'Not Interested', count: scoreTiers.notInterested, color: PALETTE.slate },
-              ].map(({ label, count, color }) => (
+                { label: 'Hot Leads', count: scoreTiers.hot, color: PALETTE.danger, icon: Flame },
+                { label: 'Warm Leads', count: scoreTiers.warm, color: PALETTE.warning, icon: Thermometer },
+                { label: 'Cold Leads', count: scoreTiers.cold, color: PALETTE.primary, icon: Snowflake },
+                { label: 'Not Interested', count: scoreTiers.notInterested, color: PALETTE.slate, icon: Ban },
+              ].map(({ label, count, color, icon: TierIcon }) => (
                 <div
                   key={label}
-                  className="bg-white rounded-2xl p-8 shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] border border-[rgba(15,23,42,0.06)] flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(15,23,42,0.06),_0_24px_48px_rgba(15,23,42,0.04)]"
+                  className="bg-white rounded-2xl p-8 shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] border border-[rgba(15,23,42,0.06)] flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(15,23,42,0.06),_0_24px_48px_rgba(15,23,42,0.04)] relative overflow-hidden h-full"
                 >
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="h-3 w-3 rounded-full shadow-sm" style={{ background: color }} />
-                    <span className="text-[16px] font-bold text-[#0F172A]">{label} Leads</span>
+                  <div className="absolute top-8 right-8 opacity-[0.04] pointer-events-none">
+                    <TierIcon size={72} style={{ color }} />
                   </div>
-                  <div>
+                  <div className="flex items-center gap-3 mb-8 relative z-10">
+                    <div className="h-3 w-3 rounded-full shadow-sm shrink-0" style={{ background: color }} />
+                    <span className="text-[16px] font-bold text-[#0F172A] truncate">{label}</span>
+                  </div>
+                  <div className="relative z-10 mt-auto">
                     <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
                     <p className="text-[14px] font-medium text-[#64748B] mt-3">
                       {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}% of total pipeline` : '0%'}
@@ -866,6 +901,14 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 flex items-start gap-4 shadow-sm mt-auto">
+              <div className="bg-white rounded-lg p-1.5 shadow-sm border border-slate-100 shrink-0">
+                <Star className="text-[#8B5CF6]" size={16} strokeWidth={2.5} />
+              </div>
+              <p className="text-[14px] font-medium text-[#475569] leading-relaxed">
+                <span className="font-bold text-[#8B5CF6]">Tip:</span> Focus on nurturing Hot and Warm leads to increase conversions.
+              </p>
             </div>
           </div>
         </div>
