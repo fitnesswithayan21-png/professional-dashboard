@@ -37,8 +37,6 @@ import {
   UserCheck,
   BarChart2,
   Flame,
-  Thermometer,
-  Snowflake,
   XCircle,
   ChevronRight,
   Info
@@ -80,19 +78,19 @@ function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-[0_4px_24px_rgba(0,0,0,0.08)] min-w-[160px]">
-      {label && <p className="text-[13px] font-semibold text-[#0F172A] mb-3">{label}</p>}
-      <div className="space-y-2">
+    <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-[0_8px_32px_rgba(0,0,0,0.08)] min-w-[180px]">
+      {label && <p className="text-[14px] font-bold text-[#0F172A] mb-4">{label}</p>}
+      <div className="space-y-3">
         {payload.map((e, i) => (
-          <div key={i} className="flex items-center justify-between gap-4 text-[13px]">
-            <span className="flex items-center gap-2 text-[#64748B]">
+          <div key={i} className="flex items-center justify-between gap-6 text-[14px]">
+            <span className="flex items-center gap-2.5 text-[#475569] font-medium">
               <span
-                className="h-2.5 w-2.5 rounded-full shrink-0"
+                className="h-3 w-3 rounded-full shrink-0 shadow-sm"
                 style={{ background: e.color ?? e.fill }}
               />
               {e.name}
             </span>
-            <span className="font-semibold text-[#0F172A]">{e.value}</span>
+            <span className="font-bold text-[#0F172A]">{e.value}</span>
           </div>
         ))}
       </div>
@@ -107,13 +105,13 @@ function SectionHeader({ icon: Icon, title, subtitle }: {
   subtitle?: string;
 }) {
   return (
-    <div className="flex items-center gap-4 mb-6">
-      <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
-        <Icon className="h-5 w-5 text-slate-700" strokeWidth={2} />
+    <div className="flex items-center gap-5 mb-6">
+      <div className="h-12 w-12 rounded-2xl bg-white border border-[rgba(15,23,42,0.08)] flex items-center justify-center shrink-0 shadow-[0_2px_8px_rgba(15,23,42,0.04)]">
+        <Icon className="h-6 w-6 text-slate-700" strokeWidth={2} />
       </div>
       <div>
         <h2 className="text-[20px] font-bold text-[#0F172A] leading-tight tracking-tight">{title}</h2>
-        {subtitle && <p className="text-[13px] text-[#64748B] mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-[14px] font-medium text-[#64748B] mt-1">{subtitle}</p>}
       </div>
     </div>
   );
@@ -139,31 +137,39 @@ function StatCard({
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),_0_12px_32px_rgba(0,0,0,0.08)] ${
-        highlight ? 'border border-[#2563EB]/20 ring-1 ring-[#2563EB]/5' : 'border border-[rgba(15,23,42,0.06)]'
+      className={`bg-white rounded-2xl p-8 flex flex-col justify-between h-full transition-all duration-300 hover:-translate-y-1 ${
+        highlight 
+          ? 'border border-[#2563EB]/20 shadow-[0_4px_16px_rgba(37,99,235,0.08),_0_12px_32px_rgba(37,99,235,0.04)] ring-1 ring-[#2563EB]/5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.1),_0_24px_48px_rgba(37,99,235,0.06)]' 
+          : 'border border-[rgba(15,23,42,0.06)] shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] hover:shadow-[0_4px_16px_rgba(15,23,42,0.06),_0_24px_48px_rgba(15,23,42,0.04)]'
       }`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
-          <Icon size={18} style={{ color }} strokeWidth={2.5} />
-        </div>
-        {trend && (
-          <div className={`flex items-center gap-1 text-[12px] font-medium px-2 py-1 rounded-md ${
-            trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
-            trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
-            'text-[#64748B] bg-[#F1F5F9]'
-          }`}>
-            {trend.type === 'up' && <TrendingUp size={12} />}
-            {trend.type === 'down' && <TrendingDown size={12} />}
-            {trend.type === 'neutral' && <Minus size={12} />}
-            {trend.value}
+      <div className="flex flex-col gap-6 h-full">
+        <div className="flex items-start justify-between">
+          <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
+            <Icon size={20} style={{ color }} strokeWidth={2.5} />
           </div>
-        )}
-      </div>
-      <div>
-        <p className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight mb-2">{value}</p>
-        <p className="text-[14px] font-semibold text-[#334155]">{label}</p>
-        {sub && <p className="text-[12px] font-normal text-[#64748B] mt-1">{sub}</p>}
+          {trend && (
+            <div className={`flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
+              trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
+              trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
+              'text-[#64748B] bg-[#F1F5F9]'
+            }`}>
+              {trend.type === 'up' && <TrendingUp size={14} strokeWidth={2.5} />}
+              {trend.type === 'down' && <TrendingDown size={14} strokeWidth={2.5} />}
+              {trend.type === 'neutral' && <Minus size={14} strokeWidth={2.5} />}
+              {trend.value}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 flex flex-col justify-center py-2">
+          <p className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
+        </div>
+        
+        <div>
+          <p className="text-[15px] font-bold text-[#1E293B]">{label}</p>
+          {sub && <p className="text-[13px] font-medium text-[#64748B] mt-1.5">{sub}</p>}
+        </div>
       </div>
     </div>
   );
@@ -172,22 +178,22 @@ function StatCard({
 // ─── Mini Profile Card (For Conv Analytics) ──────────────────────────────────
 function MiniProfileCard({ name, subtitle, count }: { name: string; subtitle: string; count: number }) {
   return (
-    <div className="bg-white rounded-2xl p-6 border border-[rgba(15,23,42,0.06)] shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] flex flex-col justify-between h-full">
+    <div className="bg-white rounded-2xl p-8 border border-[rgba(15,23,42,0.06)] shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] flex flex-col justify-between h-full">
       <div>
-        <span className="text-[12px] font-medium text-[#64748B] uppercase tracking-wider">Most Active Lead</span>
-        <div className="mt-4 flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-inner">
+        <span className="text-[12px] font-bold text-[#64748B] uppercase tracking-widest mb-6 block">Most Active Lead</span>
+        <div className="flex flex-col items-center text-center gap-4 mt-2">
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center text-white text-[20px] font-bold shadow-inner ring-4 ring-[#8B5CF6]/10 shrink-0">
             {name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-[15px] font-bold text-[#0F172A] leading-tight truncate max-w-[120px]">{name}</p>
-            <p className="text-[12px] text-[#64748B] mt-0.5">{subtitle}</p>
+            <p className="text-[16px] font-bold text-[#0F172A] leading-tight max-w-[160px] truncate mx-auto">{name}</p>
+            <p className="text-[13px] font-medium text-[#64748B] mt-1.5">{subtitle}</p>
           </div>
         </div>
       </div>
-      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-        <span className="text-[13px] text-[#64748B]">Total Messages</span>
-        <span className="text-[15px] font-bold text-[#0F172A]">{count}</span>
+      <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-2">
+        <span className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</span>
+        <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-wide">Total Messages</span>
       </div>
     </div>
   );
@@ -207,27 +213,31 @@ function DonutChart({
   const nonEmpty = data.filter(d => d.value > 0);
 
   return (
-    <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] p-6 flex flex-col h-full">
-      <p className="text-[14px] font-semibold text-[#0F172A] mb-6">{title}</p>
+    <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-8 flex flex-col h-full">
+      <p className="text-[16px] font-bold text-[#0F172A] mb-8">{title}</p>
+      
       {total === 0 || nonEmpty.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-3">
-          <BarChart2 size={32} className="text-[#E2E8F0] stroke-[1.5]" />
-          <p className="text-[13px] text-[#94A3B8]">{emptyText}</p>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 min-h-[200px]">
+          <div className="h-14 w-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm">
+            <BarChart2 size={24} className="text-slate-400 stroke-[2]" />
+          </div>
+          <p className="text-[14px] font-medium text-[#64748B]">{emptyText}</p>
         </div>
       ) : (
-        <div className="flex flex-col xl:flex-row items-center justify-center gap-8 flex-1">
-          <div className="relative shrink-0" style={{ width: 140, height: 140 }}>
+        <div className="flex flex-col xl:flex-row items-center justify-center gap-12 flex-1 p-4">
+          <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={nonEmpty}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
-                  paddingAngle={3}
+                  innerRadius={65}
+                  outerRadius={85}
+                  paddingAngle={4}
                   dataKey="value"
                   stroke="none"
+                  cornerRadius={4}
                 >
                   {nonEmpty.map((_, i) => (
                     <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -237,21 +247,21 @@ function DonutChart({
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[24px] font-bold text-[#0F172A] leading-none">{total}</span>
+              <span className="text-[32px] font-bold text-[#0F172A] leading-none">{total}</span>
             </div>
           </div>
-          <div className="flex-1 space-y-3 min-w-0 w-full xl:w-auto">
+          <div className="flex flex-col gap-4 min-w-0 w-full xl:w-auto">
             {nonEmpty.map((d, i) => (
-              <div key={d.name} className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 min-w-0">
+              <div key={d.name} className="flex items-center justify-between gap-6">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="h-3 w-3 rounded-full shrink-0 shadow-sm"
+                    className="h-3.5 w-3.5 rounded-full shrink-0 shadow-sm"
                     style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
                   />
-                  <span className="text-[13px] text-[#475569] truncate">{d.name}</span>
+                  <span className="text-[14px] font-medium text-[#475569] truncate">{d.name}</span>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[13px] font-semibold text-[#0F172A]">{d.value}</span>
+                <div className="flex items-center shrink-0">
+                  <span className="text-[15px] font-bold text-[#0F172A]">{d.value}</span>
                 </div>
               </div>
             ))}
@@ -267,34 +277,34 @@ function RingProgress({
   value,
   label,
   color = PALETTE.primary,
-  size = 100,
+  size = 120,
 }: {
   value: number;
   label: string;
   color?: string;
   size?: number;
 }) {
-  const r = (size / 2) - 8;
+  const r = (size / 2) - 10;
   const circumference = 2 * Math.PI * r;
   const dashOffset = circumference * (1 - Math.min(value, 100) / 100);
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-5">
       <div className="relative drop-shadow-sm" style={{ width: size, height: size }}>
         <svg width={size} height={size}>
           <defs>
             <linearGradient id={`grad-${label.replace(/\s+/g, '')}`} x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor={color} stopOpacity={1} />
-              <stop offset="100%" stopColor={color} stopOpacity={0.7} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.6} />
             </linearGradient>
           </defs>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F1F5F9" strokeWidth={8} />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F1F5F9" strokeWidth={10} />
           <circle
             cx={size / 2}
             cy={size / 2}
             r={r}
             fill="none"
             stroke={`url(#grad-${label.replace(/\s+/g, '')})`}
-            strokeWidth={8}
+            strokeWidth={10}
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
@@ -303,25 +313,25 @@ function RingProgress({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[18px] font-bold text-[#0F172A]">
+          <span className="text-[22px] font-bold text-[#0F172A]">
             {isNaN(value) ? '—' : `${Math.round(value)}%`}
           </span>
         </div>
       </div>
-      <span className="text-[13px] font-medium text-[#475569] text-center">{label}</span>
+      <span className="text-[14px] font-bold text-[#475569] text-center">{label}</span>
     </div>
   );
 }
 
-// ─── Empty State ─────────────────────────────────────────────────────────────
+// ─── Premium Empty State ─────────────────────────────────────────────────────
 function PremiumEmptyState({ icon: Icon, title, desc }: { icon: React.ElementType, title: string, desc: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      <div className="h-16 w-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-        <Icon size={28} className="text-slate-400 stroke-[1.5]" />
+    <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 rounded-2xl border border-slate-100 border-dashed h-full min-h-[240px]">
+      <div className="h-16 w-16 bg-white border border-slate-200 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <Icon size={28} className="text-slate-400 stroke-[2]" />
       </div>
-      <p className="text-[15px] font-semibold text-[#0F172A] mb-1">{title}</p>
-      <p className="text-[13px] text-[#64748B] max-w-xs">{desc}</p>
+      <p className="text-[16px] font-bold text-[#0F172A] mb-2">{title}</p>
+      <p className="text-[14px] font-medium text-[#64748B] max-w-[280px] leading-relaxed">{desc}</p>
     </div>
   );
 }
@@ -648,7 +658,6 @@ export default function AnalyticsPage() {
 
   // ── AI INSIGHTS ──────────────────────────────────────────────────────────────
   const fetchAIInsights = useCallback(async () => {
-    // Exact same unchanged logic
     const grokKey = settings.apiKeys.grok;
     const openaiKey = settings.apiKeys.openai;
 
@@ -723,14 +732,14 @@ export default function AnalyticsPage() {
   // ── Skeleton Loader ──────────────────────────────────────────────────────────
   if (!hydrated) {
     return (
-      <div className="flex flex-col gap-12 p-8 animate-pulse">
-        <div className="h-40 bg-slate-100 rounded-2xl w-full"></div>
+      <div className="flex flex-col gap-10 p-10 animate-pulse">
+        <div className="h-48 bg-slate-100 rounded-2xl w-full"></div>
         <div className="grid grid-cols-4 gap-6">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-slate-100 rounded-2xl"></div>)}
+          {[1,2,3,4].map(i => <div key={i} className="h-40 bg-slate-100 rounded-2xl"></div>)}
         </div>
         <div className="grid grid-cols-2 gap-6">
-          <div className="h-64 bg-slate-100 rounded-2xl"></div>
-          <div className="h-64 bg-slate-100 rounded-2xl"></div>
+          <div className="h-80 bg-slate-100 rounded-2xl"></div>
+          <div className="h-80 bg-slate-100 rounded-2xl"></div>
         </div>
       </div>
     );
@@ -740,76 +749,48 @@ export default function AnalyticsPage() {
   // RENDER
   // ──────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-12 animate-fade-in pb-12 max-w-[1600px] mx-auto w-full">
+    <div className="flex flex-col gap-10 animate-fade-in pb-16 max-w-[1600px] mx-auto w-full">
 
       {/* ── Executive Summary Banner ───────────────────────────────────────── */}
       <section>
-        <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-10 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-[#10B981]" />
           <div>
-            <h1 className="text-[28px] font-bold text-[#0F172A] leading-tight tracking-tight mb-2">Business Health: {healthStatus}</h1>
-            <p className="text-[14px] text-[#64748B]">Here is the executive overview of your CRM pipeline performance.</p>
+            <p className="text-[14px] font-bold text-[#64748B] uppercase tracking-widest mb-3">Executive Summary</p>
+            <h1 className="text-[32px] font-bold text-[#0F172A] leading-tight tracking-tight mb-3">Business Health: {healthStatus}</h1>
+            <p className="text-[16px] font-medium text-[#64748B]">Real-time overview of your CRM pipeline performance.</p>
           </div>
-          <div className="flex flex-wrap gap-x-10 gap-y-4">
+          <div className="flex flex-wrap gap-x-12 gap-y-8">
             <div>
-              <p className="text-[12px] font-medium text-[#64748B] uppercase tracking-wider mb-1">Lead Quality</p>
-              <p className="text-[16px] font-semibold text-[#0F172A]">{qualityStatus}</p>
+              <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-wider mb-2">Lead Quality</p>
+              <p className="text-[20px] font-bold text-[#0F172A]">{qualityStatus}</p>
             </div>
             <div>
-              <p className="text-[12px] font-medium text-[#64748B] uppercase tracking-wider mb-1">Appointments</p>
-              <p className="text-[16px] font-semibold text-[#0F172A]">{apptAnalytics.showRate > 0 ? `${Math.round(apptAnalytics.showRate)}% Show Rate` : 'No Shows Yet'}</p>
+              <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-wider mb-2">Appointments</p>
+              <p className="text-[20px] font-bold text-[#0F172A]">{apptAnalytics.showRate > 0 ? `${Math.round(apptAnalytics.showRate)}% Show Rate` : 'No Shows Yet'}</p>
             </div>
             <div>
-              <p className="text-[12px] font-medium text-[#64748B] uppercase tracking-wider mb-1">Revenue Potential</p>
-              <p className="text-[16px] font-semibold text-[#10B981]">{fmtCurrency(revenueData.pipelineValue)}</p>
+              <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-wider mb-2">Revenue Potential</p>
+              <p className="text-[20px] font-bold text-[#10B981]">{fmtCurrency(revenueData.pipelineValue)}</p>
             </div>
           </div>
         </div>
         {attentionItems.length > 0 && (
-          <div className="mt-4 bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-4 flex items-start gap-3 shadow-sm">
-            <AlertTriangle className="text-[#D97706] shrink-0 mt-0.5" size={18} />
-            <div>
-              <p className="text-[14px] font-semibold text-[#92400E]">Attention Needed</p>
-              <p className="text-[13px] text-[#B45309] mt-0.5">{execAction}</p>
+          <div className="mt-6 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4 shadow-sm">
+            <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-[#FDE68A]">
+              <AlertTriangle className="text-[#D97706]" size={20} strokeWidth={2.5} />
+            </div>
+            <div className="flex flex-col justify-center">
+              <p className="text-[16px] font-bold text-[#92400E]">Attention Needed</p>
+              <p className="text-[14px] font-medium text-[#B45309] mt-1">{execAction}</p>
             </div>
           </div>
         )}
       </section>
 
-      {/* ── Section 0: Today's Business Snapshot ─────────────────────────── */}
-      <section>
-        <SectionHeader icon={Activity} title="Today's Business Snapshot" subtitle={new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())} />
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
-          {[
-            { label: 'New Leads', value: todaySnapshot.newLeadsToday, icon: Users, color: PALETTE.primary },
-            { label: 'Conversations', value: todaySnapshot.conversationsToday, icon: MessageSquare, color: PALETTE.ai },
-            { label: 'Messages', value: todaySnapshot.messagesToday, icon: Activity, color: PALETTE.primary },
-            { label: 'Appointments', value: todaySnapshot.appointmentsToday, icon: Calendar, color: PALETTE.success },
-            { label: 'Follow-Ups Due', value: todaySnapshot.followUpsDueToday, icon: Clock, color: PALETTE.warning },
-            { label: 'High Priority', value: todaySnapshot.highPriority, icon: Star, color: PALETTE.danger },
-            { label: 'Pipeline Value', value: fmtCurrency(todaySnapshot.revenueToday), icon: DollarSign, color: PALETTE.success },
-            { label: 'Conversion', value: `${kpiData.conversionRate.toFixed(1)}%`, icon: TrendingUp, color: PALETTE.primary },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <div
-              key={label}
-              className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] flex flex-col justify-between hover:-translate-y-0.5 transition-transform duration-200"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: `${color}15` }}>
-                  <Icon size={14} style={{ color }} strokeWidth={2.5} />
-                </div>
-              </div>
-              <div>
-                <p className="text-[24px] font-bold text-[#0F172A] leading-none tracking-tight mb-1">{value}</p>
-                <p className="text-[12px] font-medium text-[#64748B]">{label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── Section 2: KPI Overview ───────────────────────────────────────── */}
       <section>
-        <SectionHeader icon={Target} title="Pipeline Overview" subtitle="Key performance indicators across all leads" />
+        <SectionHeader icon={Target} title="Pipeline Overview" subtitle="Key performance indicators across your entire CRM" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard label="Total Leads" value={kpiData.totalLeads} icon={Users} color={PALETTE.primary} />
           <StatCard label="Active Leads" value={kpiData.activeLeads} icon={Activity} color={PALETTE.primary} trend={{ value: `${kpiData.activeLeads} active`, type: 'neutral' }} />
@@ -822,34 +803,34 @@ export default function AnalyticsPage() {
 
       {/* ── Section 3 + 4: Pipeline + Score Tiers ────────────────────────── */}
       <section>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
           {/* Pipeline */}
-          <div>
+          <div className="flex flex-col h-full">
             <SectionHeader icon={ChevronRight} title="Lead Pipeline" subtitle="Breakdown by pipeline stage" />
-            <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] p-8 h-[calc(100%-60px)]">
+            <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex-1">
               {leads.length === 0 ? (
                 <PremiumEmptyState icon={Users} title="No Leads Yet" desc="Your pipeline will populate here as new leads enter the system." />
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-8 mt-2">
                   {pipelineData.map(stage => {
                     const pct = maxPipelineCount > 0 ? (stage.count / maxPipelineCount) * 100 : 0;
                     return (
-                      <div key={stage.key} className="flex items-center gap-4">
-                        <span className="text-[13px] font-semibold w-28 shrink-0 text-[#334155]">
+                      <div key={stage.key} className="flex items-center gap-6">
+                        <span className="text-[14px] font-bold w-32 shrink-0 text-[#334155]">
                           {stage.label}
                         </span>
-                        <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden shadow-inner">
                           <div
                             className="h-full rounded-full transition-all duration-1000 ease-out"
                             style={{ 
                               width: `${Math.max(pct, 2)}%`, 
-                              background: `linear-gradient(90deg, ${stage.color}CC, ${stage.color})` 
+                              background: `linear-gradient(90deg, ${stage.color}99, ${stage.color})` 
                             }}
                           />
                         </div>
                         <div className="w-16 text-right shrink-0">
-                          <span className="text-[14px] font-bold text-[#0F172A]">{stage.count}</span>
-                          <span className="text-[11px] text-[#64748B] block mt-0.5">{leads.length > 0 ? `${Math.round((stage.count / leads.length) * 100)}%` : '0%'}</span>
+                          <span className="text-[16px] font-bold text-[#0F172A] leading-none">{stage.count}</span>
+                          <span className="text-[12px] font-medium text-[#64748B] block mt-1">{leads.length > 0 ? `${Math.round((stage.count / leads.length) * 100)}%` : '0%'}</span>
                         </div>
                       </div>
                     );
@@ -860,9 +841,9 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Score Tiers */}
-          <div>
-            <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Lead quality breakdown" />
-            <div className="grid grid-cols-2 gap-4 h-[calc(100%-60px)]">
+          <div className="flex flex-col h-full">
+            <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Pipeline quality breakdown" />
+            <div className="grid grid-cols-2 gap-6 flex-1">
               {[
                 { label: 'Hot', count: scoreTiers.hot, color: PALETTE.danger },
                 { label: 'Warm', count: scoreTiers.warm, color: PALETTE.warning },
@@ -871,15 +852,15 @@ export default function AnalyticsPage() {
               ].map(({ label, count, color }) => (
                 <div
                   key={label}
-                  className="bg-white rounded-2xl p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] border border-[rgba(15,23,42,0.06)] flex flex-col justify-between"
+                  className="bg-white rounded-2xl p-8 shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] border border-[rgba(15,23,42,0.06)] flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(15,23,42,0.06),_0_24px_48px_rgba(15,23,42,0.04)]"
                 >
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ background: color }} />
-                    <span className="text-[14px] font-semibold text-[#0F172A]">{label} Leads</span>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-3 w-3 rounded-full shadow-sm" style={{ background: color }} />
+                    <span className="text-[16px] font-bold text-[#0F172A]">{label} Leads</span>
                   </div>
                   <div>
-                    <p className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
-                    <p className="text-[12px] font-medium text-[#64748B] mt-2">
+                    <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
+                    <p className="text-[14px] font-medium text-[#64748B] mt-3">
                       {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}% of total pipeline` : '0%'}
                     </p>
                   </div>
@@ -893,39 +874,40 @@ export default function AnalyticsPage() {
       {/* ── Section 5: Lead Source Performance ────────────────────────────── */}
       <section>
         <SectionHeader icon={Zap} title="Lead Source Performance" subtitle="Where your leads are coming from" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bar chart */}
-          <div className="lg:col-span-2 bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] p-8">
-            <div className="flex items-center justify-between mb-8">
-              <p className="text-[14px] font-semibold text-[#0F172A]">Sources by Volume</p>
+          <div className="lg:col-span-2 bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-10">
+              <p className="text-[16px] font-bold text-[#0F172A]">Sources by Volume</p>
               {bestSource !== '—' && (
-                <span className="text-[12px] font-medium text-[#64748B] bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
-                  Top Source: <span className="font-bold text-[#0F172A]">{bestSource}</span>
+                <span className="text-[13px] font-bold text-[#64748B] bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl">
+                  Top Source: <span className="text-[#0F172A] ml-1">{bestSource}</span>
                 </span>
               )}
             </div>
             {sourceData.length === 0 ? (
               <PremiumEmptyState icon={Zap} title="No Sources Tracked" desc="Lead source data will appear here once leads enter the system." />
             ) : (
-              <div className="h-64">
+              <div className="h-[320px] w-full flex-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={sourceData}
                     layout="vertical"
-                    margin={{ top: 0, right: 32, left: 0, bottom: 0 }}
+                    margin={{ top: 24, right: 32, left: 16, bottom: 24 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" horizontal={false} />
-                    <XAxis type="number" tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 500 }} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="4 4" stroke="#0F172A" strokeOpacity={0.06} horizontal={false} />
+                    <XAxis type="number" tick={{ fill: '#64748B', fontSize: 13, fontWeight: 600 }} axisLine={false} tickLine={false} tickMargin={16} />
                     <YAxis
                       type="category"
                       dataKey="name"
-                      tick={{ fill: '#334155', fontSize: 12, fontWeight: 500 }}
+                      tick={{ fill: '#334155', fontSize: 13, fontWeight: 600 }}
                       axisLine={false}
                       tickLine={false}
-                      width={100}
+                      width={120}
+                      tickMargin={16}
                     />
                     <Tooltip content={<ChartTooltip />} cursor={{ fill: '#F8FAFC' }} />
-                    <Bar dataKey="value" name="Leads" radius={[0, 6, 6, 0]} maxBarSize={32}>
+                    <Bar dataKey="value" name="Leads" radius={[8, 8, 8, 8]} maxBarSize={32}>
                       {sourceData.map((_, i) => (
                         <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                       ))}
@@ -936,14 +918,16 @@ export default function AnalyticsPage() {
             )}
           </div>
 
-          <DonutChart data={sourceData} title="Source Distribution" emptyText="No sources tracked yet." />
+          <div className="h-full">
+            <DonutChart data={sourceData} title="Source Distribution" emptyText="No sources tracked yet." />
+          </div>
         </div>
       </section>
 
       {/* ── Section 6: Lead Intelligence ──────────────────────────────────── */}
       <section>
         <SectionHeader icon={Brain} title="Lead Intelligence" subtitle="Intent, urgency, and business type extracted from AI memory" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <DonutChart data={intentData} title="Intent Distribution" emptyText="No intent data captured." />
           <DonutChart data={urgencyData} title="Urgency Distribution" emptyText="No urgency data captured." />
           <DonutChart data={businessTypeData} title="Business Type Distribution" emptyText="No business type data yet." />
@@ -959,25 +943,27 @@ export default function AnalyticsPage() {
           <StatCard label="No Shows" value={apptAnalytics.noShow} icon={XCircle} color={PALETTE.danger} />
           <StatCard label="Cancelled" value={apptAnalytics.cancelled} icon={AlertTriangle} color={PALETTE.warning} />
         </div>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] p-8">
-            <p className="text-[14px] font-semibold text-[#0F172A] mb-8">Appointment Rates</p>
-            <div className="flex flex-wrap items-center justify-around gap-6">
-              <RingProgress value={apptAnalytics.showRate} label="Show Rate" color={PALETTE.success} size={110} />
-              <RingProgress value={apptAnalytics.noShowRate} label="No-Show Rate" color={PALETTE.danger} size={110} />
-              <RingProgress value={apptAnalytics.successRate} label="Success Rate" color={PALETTE.primary} size={110} />
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex flex-col h-full">
+            <p className="text-[16px] font-bold text-[#0F172A] mb-12">Appointment Rates</p>
+            <div className="flex flex-wrap items-center justify-around gap-10 flex-1">
+              <RingProgress value={apptAnalytics.showRate} label="Show Rate" color={PALETTE.success} size={140} />
+              <RingProgress value={apptAnalytics.noShowRate} label="No-Show Rate" color={PALETTE.danger} size={140} />
+              <RingProgress value={apptAnalytics.successRate} label="Success Rate" color={PALETTE.primary} size={140} />
             </div>
           </div>
-          <DonutChart
-            data={[
-              { name: 'Upcoming', value: apptAnalytics.upcoming },
-              { name: 'Completed', value: apptAnalytics.completed },
-              { name: 'No-Show', value: apptAnalytics.noShow },
-              { name: 'Cancelled', value: apptAnalytics.cancelled },
-            ].filter(d => d.value > 0)}
-            title="Appointment Status"
-            emptyText="No appointments booked yet."
-          />
+          <div className="h-full">
+            <DonutChart
+              data={[
+                { name: 'Upcoming', value: apptAnalytics.upcoming },
+                { name: 'Completed', value: apptAnalytics.completed },
+                { name: 'No-Show', value: apptAnalytics.noShow },
+                { name: 'Cancelled', value: apptAnalytics.cancelled },
+              ].filter(d => d.value > 0)}
+              title="Appointment Status"
+              emptyText="No appointments booked yet."
+            />
+          </div>
         </div>
       </section>
 
@@ -991,14 +977,14 @@ export default function AnalyticsPage() {
           <StatCard label="Avg Delay" value={followUpAnalytics.avgDelayHours > 0 ? `${followUpAnalytics.avgDelayHours.toFixed(1)}h` : '—'} sub="For overdue items" icon={Activity} color={PALETTE.warning} />
           <StatCard label="Failed" value={followUpAnalytics.failed} icon={XCircle} color={PALETTE.slate} />
         </div>
-        <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] p-8">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-[14px] font-semibold text-[#0F172A]">Follow-Up Completion Rate</p>
-            <span className="text-[14px] font-bold text-[#0F172A]">
+        <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10">
+          <div className="flex items-center justify-between mb-8">
+            <p className="text-[16px] font-bold text-[#0F172A]">Follow-Up Completion Rate</p>
+            <span className="text-[20px] font-bold text-[#0F172A]">
               {followUpAnalytics.completionRate.toFixed(1)}%
             </span>
           </div>
-          <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-6 bg-slate-100 rounded-full overflow-hidden shadow-inner">
             <div
               className="h-full rounded-full transition-all duration-1000 ease-out"
               style={{
@@ -1007,10 +993,10 @@ export default function AnalyticsPage() {
               }}
             />
           </div>
-          <div className="flex justify-between mt-3">
-            <span className="text-[13px] font-medium text-[#64748B]">{followUpAnalytics.completed} completed of {followUpAnalytics.total} total</span>
+          <div className="flex justify-between mt-4">
+            <span className="text-[14px] font-bold text-[#64748B]">{followUpAnalytics.completed} completed of {followUpAnalytics.total} total</span>
             {followUpAnalytics.overdue > 0 && (
-              <span className="text-[13px] font-bold text-[#EF4444]">
+              <span className="text-[14px] font-bold text-[#EF4444]">
                 {followUpAnalytics.overdue} overdue
               </span>
             )}
@@ -1036,9 +1022,9 @@ export default function AnalyticsPage() {
         </div>
 
         {convAnalytics.totalMessages > 0 && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] p-8">
-            <p className="text-[14px] font-semibold text-[#0F172A] mb-8">Message Breakdown</p>
-            <div className="w-full h-12 flex rounded-xl overflow-hidden mb-6 shadow-sm">
+          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10">
+            <p className="text-[16px] font-bold text-[#0F172A] mb-10">Message Breakdown</p>
+            <div className="w-full h-16 flex rounded-xl overflow-hidden mb-8 shadow-sm">
               {[
                 { label: 'AI Messages', value: convAnalytics.aiMessages, color: PALETTE.ai },
                 { label: 'Owner Messages', value: convAnalytics.ownerMessages, color: PALETTE.primary },
@@ -1050,22 +1036,22 @@ export default function AnalyticsPage() {
                   className="h-full transition-all duration-1000 ease-out flex items-center justify-center border-r border-white/20 last:border-0"
                 >
                   {(d.value / convAnalytics.totalMessages) > 0.1 && (
-                    <span className="text-[12px] font-bold text-white px-2 truncate">{d.label}</span>
+                    <span className="text-[14px] font-bold text-white px-4 truncate">{d.label}</span>
                   )}
                 </div>
               ))}
             </div>
             
-            <div className="flex flex-wrap items-center gap-6 justify-center">
+            <div className="flex flex-wrap items-center gap-10 justify-center">
               {[
                 { label: 'AI Messages', value: convAnalytics.aiMessages, color: PALETTE.ai },
                 { label: 'Owner Messages', value: convAnalytics.ownerMessages, color: PALETTE.primary },
                 { label: 'Other', value: convAnalytics.totalMessages - convAnalytics.aiMessages - convAnalytics.ownerMessages, color: PALETTE.slate },
               ].filter(d => d.value > 0).map(d => (
-                <div key={d.label} className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full shadow-sm" style={{ background: d.color }} />
-                  <span className="text-[13px] font-medium text-[#475569]">{d.label}</span>
-                  <span className="text-[13px] font-bold text-[#0F172A]">{d.value}</span>
+                <div key={d.label} className="flex items-center gap-3">
+                  <div className="h-4 w-4 rounded-full shadow-sm" style={{ background: d.color }} />
+                  <span className="text-[14px] font-bold text-[#475569]">{d.label}</span>
+                  <span className="text-[16px] font-bold text-[#0F172A]">{d.value}</span>
                 </div>
               ))}
             </div>
@@ -1101,7 +1087,7 @@ export default function AnalyticsPage() {
           />
         </div>
         {!revenueData.hasBudgetData && (
-          <div className="mt-6">
+          <div className="mt-8">
             <PremiumEmptyState icon={DollarSign} title="No Revenue Data" desc="Budget information will appear here once leads share their budget constraints with the AI assistant." />
           </div>
         )}
@@ -1113,41 +1099,41 @@ export default function AnalyticsPage() {
 
         {/* Trigger panel */}
         {!aiInsights && !aiLoading && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-12 flex flex-col items-center justify-center gap-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-lg shadow-[#8B5CF6]/20 relative z-10">
-              <Brain size={36} className="text-white" />
+          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-16 flex flex-col items-center justify-center gap-8 text-center shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] relative overflow-hidden group min-h-[400px]">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-lg shadow-[#8B5CF6]/30 relative z-10">
+              <Brain size={48} className="text-white" />
             </div>
-            <div className="max-w-lg relative z-10">
-              <p className="text-[20px] font-bold text-[#0F172A] mb-2">Generate Executive Insights</p>
-              <p className="text-[14px] text-[#64748B] leading-relaxed">
+            <div className="max-w-xl relative z-10">
+              <p className="text-[24px] font-bold text-[#0F172A] mb-3">Generate Executive Insights</p>
+              <p className="text-[16px] text-[#64748B] leading-relaxed font-medium">
                 Run a deep analysis on your live CRM data to uncover hidden opportunities, pinpoint pipeline bottlenecks, and receive actionable strategic recommendations.
               </p>
             </div>
 
             {aiError === 'no_provider' ? (
-              <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl px-6 py-4 flex items-center gap-3 shadow-sm relative z-10">
-                <AlertTriangle size={18} className="text-[#D97706] shrink-0" />
-                <span className="text-[14px] font-medium text-[#92400E]">Configure an AI provider in Settings to enable Analytics Insights.</span>
+              <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl px-8 py-5 flex items-center gap-4 shadow-sm relative z-10 mt-2">
+                <AlertTriangle size={24} className="text-[#D97706] shrink-0" />
+                <span className="text-[15px] font-bold text-[#92400E]">Configure an AI provider in Settings to enable Analytics Insights.</span>
               </div>
             ) : aiError === 'failed' ? (
-              <div className="flex flex-col items-center gap-4 relative z-10">
-                <p className="text-[13px] font-medium text-[#EF4444]">Analysis failed. Please try again.</p>
+              <div className="flex flex-col items-center gap-5 relative z-10 mt-2">
+                <p className="text-[14px] font-bold text-[#EF4444]">Analysis failed. Please try again.</p>
                 <button
                   onClick={fetchAIInsights}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#0F172A] hover:bg-[#1E293B] text-white text-[14px] font-bold rounded-xl transition-all shadow-md active:scale-95"
+                  className="flex items-center gap-3 px-8 py-4 bg-[#0F172A] hover:bg-[#1E293B] text-white text-[15px] font-bold rounded-xl transition-all shadow-md active:scale-95"
                 >
-                  <RefreshCw size={16} /> Retry Analysis
+                  <RefreshCw size={18} /> Retry Analysis
                 </button>
               </div>
             ) : (
               <button
                 onClick={fetchAIInsights}
-                className="flex items-center gap-2 px-8 py-4 bg-[#0F172A] hover:bg-[#1E293B] hover:-translate-y-0.5 hover:shadow-lg text-white text-[15px] font-bold rounded-xl transition-all shadow-md active:scale-95 relative z-10"
+                className="flex items-center gap-3 px-10 py-5 bg-[#0F172A] hover:bg-[#1E293B] hover:-translate-y-1 hover:shadow-xl text-white text-[16px] font-bold rounded-2xl transition-all shadow-lg active:scale-95 relative z-10 mt-4"
               >
-                <Brain size={18} />
+                <Brain size={20} />
                 Generate Insights
-                <ArrowRight size={16} />
+                <ArrowRight size={18} />
               </button>
             )}
           </div>
@@ -1155,51 +1141,53 @@ export default function AnalyticsPage() {
 
         {/* Loading */}
         {aiLoading && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-16 flex flex-col items-center justify-center gap-6 shadow-sm">
-            <Loader2 size={36} className="text-[#8B5CF6] animate-spin" />
-            <p className="text-[15px] font-semibold text-[#0F172A]">Synthesizing CRM data…</p>
+          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-24 flex flex-col items-center justify-center gap-8 shadow-[0_2px_8px_rgba(15,23,42,0.04)] min-h-[400px]">
+            <Loader2 size={48} className="text-[#8B5CF6] animate-spin" />
+            <p className="text-[18px] font-bold text-[#0F172A]">Synthesizing CRM data…</p>
           </div>
         )}
 
         {/* Insights */}
         {aiInsights && !aiLoading && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04),_0_8px_24px_rgba(0,0,0,0.04)] relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9]" />
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center">
-                  <Brain size={20} className="text-[#8B5CF6]" />
+          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-10 shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9]" />
+            <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center gap-5">
+                <div className="h-14 w-14 rounded-2xl bg-[#8B5CF6]/10 flex items-center justify-center">
+                  <Brain size={28} className="text-[#8B5CF6]" />
                 </div>
                 <div>
-                  <p className="text-[18px] font-bold text-[#0F172A]">Executive Analysis</p>
-                  <p className="text-[13px] text-[#64748B]">Generated from live pipeline data</p>
+                  <p className="text-[24px] font-bold text-[#0F172A]">Executive Analysis</p>
+                  <p className="text-[15px] font-medium text-[#64748B] mt-1">Generated from live pipeline data</p>
                 </div>
               </div>
               <button
                 onClick={fetchAIInsights}
-                className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-[#475569] hover:text-[#0F172A] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-5 py-3 text-[14px] font-bold text-[#475569] hover:text-[#0F172A] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors"
               >
-                <RefreshCw size={14} /> Regenerate
+                <RefreshCw size={16} /> Regenerate
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {[
                 { title: 'Key Insights', items: aiInsights.keyInsights, color: PALETTE.primary, icon: BarChart2 },
                 { title: 'Opportunities', items: aiInsights.opportunities, color: PALETTE.success, icon: TrendingUp },
                 { title: 'Recommended Actions', items: aiInsights.recommendedActions, color: PALETTE.ai, icon: Zap },
                 { title: 'Attention Required', items: aiInsights.attentionRequired, color: PALETTE.danger, icon: AlertTriangle },
               ].map(({ title, items, color, icon: Icon }) => (
-                <div key={title} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                  <div className="flex items-center gap-3 mb-5">
-                    <Icon size={18} style={{ color }} strokeWidth={2.5} />
-                    <span className="text-[15px] font-bold text-[#0F172A]">{title}</span>
+                <div key={title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 h-full">
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="h-12 w-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                      <Icon size={24} style={{ color }} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[18px] font-bold text-[#0F172A]">{title}</span>
                   </div>
-                  <ul className="space-y-4">
+                  <ul className="space-y-6">
                     {items.map((item, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <div className="h-1.5 w-1.5 rounded-full mt-2 shrink-0" style={{ background: color }} />
-                        <p className="text-[13px] text-[#334155] leading-relaxed">{item}</p>
+                      <li key={i} className="flex items-start gap-4">
+                        <div className="h-2 w-2 rounded-full mt-2 shrink-0 shadow-sm" style={{ background: color }} />
+                        <p className="text-[15px] font-medium text-[#334155] leading-relaxed">{item}</p>
                       </li>
                     ))}
                   </ul>
