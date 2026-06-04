@@ -163,7 +163,7 @@ function AnalyticsCard({
       transition-all duration-300 hover:-translate-y-1
       ${highlight 
         ? 'border border-[#2563EB]/20 shadow-[0_4px_16px_rgba(37,99,235,0.08)] ring-1 ring-[#2563EB]/5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.1)]' 
-        : 'border border-[rgba(15,23,42,0.06)] shadow-[0_2px_8px_rgba(15,23,42,0.04)] hover:shadow-[0_4px_16px_rgba(15,23,42,0.06)]'
+        : 'border border-slate-200/60 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_24px_-4px_rgba(15,23,42,0.08)]'
       }
       ${!noPadding ? 'p-6 md:p-8' : ''}
       ${className}
@@ -200,38 +200,38 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <AnalyticsCard highlight={highlight} className="h-full">
-      <div className="flex flex-col items-start gap-4 h-full">
-        {/* Top Area */}
-        <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
-          <Icon size={22} style={{ color }} strokeWidth={2} />
-        </div>
-        
-        {/* Middle Area */}
-        <div className="mt-2 mb-2">
-          <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
-        </div>
-        
-        {/* Bottom Area */}
-        <div className="flex flex-col gap-1">
-          <p className="text-[15px] font-bold text-[#1E293B]">{label}</p>
-          {sub && <p className="text-[13px] font-medium text-[#64748B]">{sub}</p>}
-        </div>
-
-        {/* Trend Info */}
-        {trend && (
-          <div className="mt-auto pt-6 w-full">
-            <div className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
-              trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
-              trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
-              'text-[#64748B] bg-[#F1F5F9]'
-            }`}>
-              {trend.type === 'up' && <TrendingUp size={14} strokeWidth={2.5} />}
-              {trend.type === 'down' && <TrendingDown size={14} strokeWidth={2.5} />}
-              {trend.type === 'neutral' && <Minus size={14} strokeWidth={2.5} />}
-              {trend.value}
-            </div>
+    <AnalyticsCard highlight={highlight} className="h-full flex flex-col justify-between">
+      {/* Header & Description */}
+      <div>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
+            <Icon size={16} style={{ color }} strokeWidth={2.5} />
           </div>
+          <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest">{label}</p>
+        </div>
+        {sub && <p className="text-[13px] font-medium text-[#94A3B8] ml-11">{sub}</p>}
+      </div>
+
+      {/* Main Metric */}
+      <div className="mt-8 mb-6">
+        <p className="text-[48px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
+      </div>
+
+      {/* Supporting Info */}
+      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center h-[40px]">
+        {trend ? (
+          <div className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
+            trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
+            trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
+            'text-[#64748B] bg-[#F1F5F9]'
+          }`}>
+            {trend.type === 'up' && <TrendingUp size={14} strokeWidth={2.5} />}
+            {trend.type === 'down' && <TrendingDown size={14} strokeWidth={2.5} />}
+            {trend.type === 'neutral' && <Minus size={14} strokeWidth={2.5} />}
+            {trend.value}
+          </div>
+        ) : (
+          <span className="text-[13px] font-medium text-slate-400/50">No trend data</span>
         )}
       </div>
     </AnalyticsCard>
@@ -276,8 +276,8 @@ function DonutChart({
   const nonEmpty = data.filter(d => d.value > 0);
 
   return (
-    <AnalyticsCard className="h-full">
-      <p className="text-[16px] font-bold text-[#0F172A] mb-8">{title}</p>
+    <AnalyticsCard className="h-full flex flex-col">
+      <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest mb-8">{title}</p>
       
       {total === 0 || nonEmpty.length === 0 ? (
         <ChartContainer className="flex-1 flex flex-col items-center justify-center gap-4 min-h-[200px]">
@@ -381,7 +381,7 @@ function RingProgress({
           </span>
         </div>
       </div>
-      <span className="text-[14px] font-bold text-[#475569] text-center">{label}</span>
+      <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest text-center mt-2">{label}</span>
     </div>
   );
 }
@@ -817,8 +817,8 @@ export default function AnalyticsPage() {
       {/* ── Executive Summary Banner ───────────────────────────────────────── */}
       <AnalyticsSection>
         <AnalyticsCard className="flex flex-col md:flex-row items-start md:items-center justify-between gap-10 relative overflow-hidden" noPadding>
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-[#10B981]" />
-          <div className="p-8 pb-4 md:pb-8 md:pr-0">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#10B981] to-[#34D399]" />
+          <div className="p-8 pb-4 md:pb-8 md:pr-0 mt-1">
             <p className="text-[14px] font-bold text-[#64748B] uppercase tracking-widest mb-3">Executive Summary</p>
             <h1 className="text-[32px] font-bold text-[#0F172A] leading-tight tracking-tight mb-3">Business Health: {healthStatus}</h1>
             <p className="text-[16px] font-medium text-[#64748B]">Real-time overview of your CRM pipeline performance.</p>
@@ -942,20 +942,34 @@ export default function AnalyticsPage() {
               ].map(({ label, count, color, icon: TierIcon }) => (
                 <AnalyticsCard
                   key={label}
-                  className="relative overflow-hidden h-full"
+                  className="relative overflow-hidden h-full flex flex-col justify-between"
                 >
-                  <div className="absolute top-8 right-8 opacity-[0.04] pointer-events-none">
-                    <TierIcon size={72} style={{ color }} />
+                  <div className="absolute -top-4 -right-4 opacity-[0.03] pointer-events-none">
+                    <TierIcon size={120} style={{ color }} />
                   </div>
-                  <div className="flex items-center gap-3 mb-8 relative z-10">
+                  
+                  {/* Header */}
+                  <div className="flex items-center gap-3 mb-1 relative z-10">
                     <div className="h-3 w-3 rounded-full shadow-sm shrink-0" style={{ background: color }} />
-                    <span className="text-[16px] font-bold text-[#0F172A] truncate">{label}</span>
+                    <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest truncate">{label}</span>
                   </div>
-                  <div className="relative z-10 mt-auto">
-                    <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
-                    <p className="text-[14px] font-medium text-[#64748B] mt-3">
-                      {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}% of total pipeline` : '0%'}
-                    </p>
+
+                  {/* Main Metric */}
+                  <div className="mt-8 mb-6 relative z-10">
+                    <p className="text-[48px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
+                  </div>
+                  
+                  {/* Supporting Info */}
+                  <div className="relative z-10 mt-auto pt-4 border-t border-slate-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[13px] font-medium text-[#64748B]">Pipeline share</span>
+                      <span className="text-[13px] font-bold" style={{ color }}>
+                        {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}%` : '0%'}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-1000" style={{ width: leads.length > 0 ? `${(count / leads.length) * 100}%` : '0%', background: color }} />
+                    </div>
                   </div>
                 </AnalyticsCard>
               ))}
