@@ -1232,7 +1232,7 @@ export default function AnalyticsPage() {
                 <ArrowRight size={18} />
               </button>
             )}
-          </div>
+          </AnalyticsCard>
         )}
 
         {/* Loading */}
@@ -1240,7 +1240,7 @@ export default function AnalyticsPage() {
           <AnalyticsCard className="p-24 flex flex-col items-center justify-center gap-8 min-h-[400px]">
             <Loader2 size={48} className="text-[#8B5CF6] animate-spin" />
             <p className="text-[18px] font-bold text-[#0F172A]">Synthesizing CRM data…</p>
-          </div>
+          </AnalyticsCard>
         )}
 
         {/* Insights */}
