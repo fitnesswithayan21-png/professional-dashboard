@@ -108,7 +108,7 @@ function SectionHeader({ icon: Icon, title, subtitle }: {
   subtitle?: string;
 }) {
   return (
-    <div className="flex items-center gap-5 mb-6">
+    <div className="flex items-center gap-5">
       <div className="h-12 w-12 rounded-2xl bg-white border border-[rgba(15,23,42,0.08)] flex items-center justify-center shrink-0 shadow-[0_2px_8px_rgba(15,23,42,0.04)]">
         <Icon className="h-6 w-6 text-slate-700" strokeWidth={2} />
       </div>
@@ -116,6 +116,67 @@ function SectionHeader({ icon: Icon, title, subtitle }: {
         <h2 className="text-[20px] font-bold text-[#0F172A] leading-tight tracking-tight">{title}</h2>
         {subtitle && <p className="text-[14px] font-medium text-[#64748B] mt-1">{subtitle}</p>}
       </div>
+    </div>
+  );
+}
+
+// ─── Reusable Layout Components ──────────────────────────────────────────────
+function AnalyticsSection({ 
+  icon, 
+  title, 
+  subtitle, 
+  children 
+}: { 
+  icon?: React.ElementType;
+  title?: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col mb-10">
+      {(icon && title) && (
+        <div className="mb-6">
+          <SectionHeader icon={icon} title={title} subtitle={subtitle} />
+        </div>
+      )}
+      <div className="flex flex-col gap-6">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function AnalyticsCard({ 
+  children, 
+  className = '', 
+  highlight = false,
+  noPadding = false
+}: { 
+  children: React.ReactNode;
+  className?: string;
+  highlight?: boolean;
+  noPadding?: boolean;
+}) {
+  return (
+    <div className={`
+      bg-white rounded-2xl flex flex-col 
+      transition-all duration-300 hover:-translate-y-1
+      ${highlight 
+        ? 'border border-[#2563EB]/20 shadow-[0_4px_16px_rgba(37,99,235,0.08)] ring-1 ring-[#2563EB]/5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.1)]' 
+        : 'border border-[rgba(15,23,42,0.06)] shadow-[0_2px_8px_rgba(15,23,42,0.04)] hover:shadow-[0_4px_16px_rgba(15,23,42,0.06)]'
+      }
+      ${!noPadding ? 'p-6 md:p-8' : ''}
+      ${className}
+    `}>
+      {children}
+    </div>
+  );
+}
+
+function ChartContainer({ children, className = '' }: { children: React.ReactNode, className?: string }) {
+  return (
+    <div className={`p-6 bg-slate-50/50 rounded-xl border border-slate-100 ${className}`}>
+      {children}
     </div>
   );
 }
@@ -139,13 +200,7 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div
-      className={`bg-white rounded-2xl p-6 md:p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
-        highlight 
-          ? 'border border-[#2563EB]/20 shadow-[0_4px_16px_rgba(37,99,235,0.08),_0_12px_32px_rgba(37,99,235,0.04)] ring-1 ring-[#2563EB]/5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.1),_0_24px_48px_rgba(37,99,235,0.06)]' 
-          : 'border border-[rgba(15,23,42,0.06)] shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] hover:shadow-[0_4px_16px_rgba(15,23,42,0.06),_0_24px_48px_rgba(15,23,42,0.04)]'
-      }`}
-    >
+    <AnalyticsCard highlight={highlight} className="h-full">
       <div className="flex flex-col items-start gap-4 h-full">
         {/* Top Area */}
         <div className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
@@ -179,14 +234,14 @@ function StatCard({
           </div>
         )}
       </div>
-    </div>
+    </AnalyticsCard>
   );
 }
 
 // ─── Mini Profile Card (For Conv Analytics) ──────────────────────────────────
 function MiniProfileCard({ name, subtitle, count }: { name: string; subtitle: string; count: number }) {
   return (
-    <div className="bg-white rounded-2xl p-8 border border-[rgba(15,23,42,0.06)] shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] flex flex-col justify-between h-full">
+    <AnalyticsCard className="h-full justify-between">
       <div>
         <span className="text-[12px] font-bold text-[#64748B] uppercase tracking-widest mb-6 block">Most Active Lead</span>
         <div className="flex flex-col items-center text-center gap-4 mt-2">
@@ -203,7 +258,7 @@ function MiniProfileCard({ name, subtitle, count }: { name: string; subtitle: st
         <span className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</span>
         <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-wide">Total Messages</span>
       </div>
-    </div>
+    </AnalyticsCard>
   );
 }
 
@@ -221,18 +276,18 @@ function DonutChart({
   const nonEmpty = data.filter(d => d.value > 0);
 
   return (
-    <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-8 flex flex-col h-full">
+    <AnalyticsCard className="h-full">
       <p className="text-[16px] font-bold text-[#0F172A] mb-8">{title}</p>
       
       {total === 0 || nonEmpty.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 min-h-[200px]">
-          <div className="h-14 w-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm">
+        <ChartContainer className="flex-1 flex flex-col items-center justify-center gap-4 min-h-[200px]">
+          <div className="h-14 w-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
             <BarChart2 size={24} className="text-slate-400 stroke-[2]" />
           </div>
           <p className="text-[14px] font-medium text-[#64748B]">{emptyText}</p>
-        </div>
+        </ChartContainer>
       ) : (
-        <div className="flex flex-col xl:flex-row items-center justify-center gap-12 flex-1 p-4">
+        <ChartContainer className="flex flex-col xl:flex-row items-center justify-center gap-12 flex-1">
           <div className="relative shrink-0" style={{ width: 180, height: 180 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -274,9 +329,9 @@ function DonutChart({
               </div>
             ))}
           </div>
-        </div>
+        </ChartContainer>
       )}
-    </div>
+    </AnalyticsCard>
   );
 }
 
@@ -760,15 +815,15 @@ export default function AnalyticsPage() {
     <div className="flex flex-col gap-10 animate-fade-in pb-16 max-w-[1600px] mx-auto w-full">
 
       {/* ── Executive Summary Banner ───────────────────────────────────────── */}
-      <section>
-        <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-10 relative overflow-hidden">
+      <AnalyticsSection>
+        <AnalyticsCard className="flex flex-col md:flex-row items-start md:items-center justify-between gap-10 relative overflow-hidden" noPadding>
           <div className="absolute top-0 left-0 w-1.5 h-full bg-[#10B981]" />
-          <div>
+          <div className="p-8 pb-4 md:pb-8 md:pr-0">
             <p className="text-[14px] font-bold text-[#64748B] uppercase tracking-widest mb-3">Executive Summary</p>
             <h1 className="text-[32px] font-bold text-[#0F172A] leading-tight tracking-tight mb-3">Business Health: {healthStatus}</h1>
             <p className="text-[16px] font-medium text-[#64748B]">Real-time overview of your CRM pipeline performance.</p>
           </div>
-          <div className="flex flex-wrap gap-x-12 gap-y-8">
+          <div className="flex flex-wrap gap-x-12 gap-y-8 p-8 pt-0 md:pt-8">
             <div>
               <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-wider mb-2">Lead Quality</p>
               <p className="text-[20px] font-bold text-[#0F172A]">{qualityStatus}</p>
@@ -782,9 +837,9 @@ export default function AnalyticsPage() {
               <p className="text-[20px] font-bold text-[#10B981]">{fmtCurrency(revenueData.pipelineValue)}</p>
             </div>
           </div>
-        </div>
+        </AnalyticsCard>
         {attentionItems.length > 0 && (
-          <div className="mt-6 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4 shadow-sm">
+          <div className="mt-2 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4 shadow-sm">
             <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-[#FDE68A]">
               <AlertTriangle className="text-[#D97706]" size={20} strokeWidth={2.5} />
             </div>
@@ -794,11 +849,10 @@ export default function AnalyticsPage() {
             </div>
           </div>
         )}
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 2: KPI Overview ───────────────────────────────────────── */}
-      <section>
-        <SectionHeader icon={Target} title="Pipeline Overview" subtitle="Key performance indicators across your entire CRM" />
+      <AnalyticsSection icon={Target} title="Pipeline Overview" subtitle="Key performance indicators across your entire CRM">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard label="Total Leads" value={kpiData.totalLeads} icon={Users} color={PALETTE.primary} />
           <StatCard label="Active Leads" value={kpiData.activeLeads} icon={Activity} color={PALETTE.primary} trend={{ value: `${kpiData.activeLeads} active`, type: 'neutral' }} />
@@ -807,15 +861,17 @@ export default function AnalyticsPage() {
           <StatCard label="Avg Score" value={`${kpiData.avgScore.toFixed(1)}`} sub="Out of 10" icon={Target} color={PALETTE.primary} />
           <StatCard label="Conversion Rate" value={`${kpiData.conversionRate.toFixed(1)}%`} sub="Leads → Booked" icon={TrendingUp} color={PALETTE.success} trend={kpiData.conversionRate > 0 ? { value: 'Positive', type: 'up' } : undefined} />
         </div>
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 3 + 4: Pipeline + Score Tiers ────────────────────────── */}
-      <section>
+      <AnalyticsSection>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
           {/* Pipeline */}
           <div className="flex flex-col h-full">
-            <SectionHeader icon={ChevronRight} title="Lead Pipeline" subtitle="Breakdown by pipeline stage" />
-            <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex-1">
+            <div className="mb-6">
+              <SectionHeader icon={ChevronRight} title="Lead Pipeline" subtitle="Breakdown by pipeline stage" />
+            </div>
+            <AnalyticsCard className="flex-1">
               {leads.length === 0 ? (
                 <PremiumEmptyState icon={Users} title="No Leads Yet" desc="Your pipeline will populate here as new leads enter the system." />
               ) : (
@@ -869,12 +925,14 @@ export default function AnalyticsPage() {
                   })}
                 </div>
               )}
-            </div>
+            </AnalyticsCard>
           </div>
 
           {/* Score Tiers */}
           <div className="flex flex-col h-full">
-            <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Pipeline quality distribution based on lead scores." />
+            <div className="mb-6">
+              <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Pipeline quality distribution based on lead scores." />
+            </div>
             <div className="grid grid-cols-2 gap-6 flex-1 mb-6">
               {[
                 { label: 'Hot Leads', count: scoreTiers.hot, color: PALETTE.danger, icon: Flame },
@@ -882,9 +940,9 @@ export default function AnalyticsPage() {
                 { label: 'Cold Leads', count: scoreTiers.cold, color: PALETTE.primary, icon: Snowflake },
                 { label: 'Not Interested', count: scoreTiers.notInterested, color: PALETTE.slate, icon: Ban },
               ].map(({ label, count, color, icon: TierIcon }) => (
-                <div
+                <AnalyticsCard
                   key={label}
-                  className="bg-white rounded-2xl p-8 shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] border border-[rgba(15,23,42,0.06)] flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(15,23,42,0.06),_0_24px_48px_rgba(15,23,42,0.04)] relative overflow-hidden h-full"
+                  className="relative overflow-hidden h-full"
                 >
                   <div className="absolute top-8 right-8 opacity-[0.04] pointer-events-none">
                     <TierIcon size={72} style={{ color }} />
@@ -899,7 +957,7 @@ export default function AnalyticsPage() {
                       {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}% of total pipeline` : '0%'}
                     </p>
                   </div>
-                </div>
+                </AnalyticsCard>
               ))}
             </div>
             <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 flex items-start gap-4 shadow-sm mt-auto">
@@ -912,15 +970,14 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 5: Lead Source Performance ────────────────────────────── */}
-      <section>
-        <SectionHeader icon={Zap} title="Lead Source Performance" subtitle="Where your leads are coming from" />
+      <AnalyticsSection icon={Zap} title="Lead Source Performance" subtitle="Where your leads are coming from">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bar chart */}
-          <div className="lg:col-span-2 bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex flex-col h-full">
-            <div className="flex items-center justify-between mb-10">
+          <AnalyticsCard className="lg:col-span-2 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-8">
               <p className="text-[16px] font-bold text-[#0F172A]">Sources by Volume</p>
               {bestSource !== '—' && (
                 <span className="text-[13px] font-bold text-[#64748B] bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl">
@@ -931,7 +988,7 @@ export default function AnalyticsPage() {
             {sourceData.length === 0 ? (
               <PremiumEmptyState icon={Zap} title="No Sources Tracked" desc="Lead source data will appear here once leads enter the system." />
             ) : (
-              <div className="h-[320px] w-full flex-1">
+              <ChartContainer className="h-[360px] w-full flex-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={sourceData}
@@ -957,29 +1014,27 @@ export default function AnalyticsPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+              </ChartContainer>
             )}
-          </div>
+          </AnalyticsCard>
 
           <div className="h-full">
             <DonutChart data={sourceData} title="Source Distribution" emptyText="No sources tracked yet." />
           </div>
         </div>
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 6: Lead Intelligence ──────────────────────────────────── */}
-      <section>
-        <SectionHeader icon={Brain} title="Lead Intelligence" subtitle="Intent, urgency, and business type extracted from AI memory" />
+      <AnalyticsSection icon={Brain} title="Lead Intelligence" subtitle="Intent, urgency, and business type extracted from AI memory">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <DonutChart data={intentData} title="Intent Distribution" emptyText="No intent data captured." />
           <DonutChart data={urgencyData} title="Urgency Distribution" emptyText="No urgency data captured." />
           <DonutChart data={businessTypeData} title="Business Type Distribution" emptyText="No business type data yet." />
         </div>
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 7: Appointment Analytics ──────────────────────────────── */}
-      <section>
-        <SectionHeader icon={Calendar} title="Appointment Analytics" subtitle="Performance and conversion tracking" />
+      <AnalyticsSection icon={Calendar} title="Appointment Analytics" subtitle="Performance and conversion tracking">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <StatCard label="Scheduled" value={apptAnalytics.upcoming} icon={Calendar} color={PALETTE.primary} />
           <StatCard label="Completed" value={apptAnalytics.completed} icon={CheckCircle2} color={PALETTE.success} />
@@ -987,14 +1042,14 @@ export default function AnalyticsPage() {
           <StatCard label="Cancelled" value={apptAnalytics.cancelled} icon={AlertTriangle} color={PALETTE.warning} />
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10 flex flex-col h-full">
-            <p className="text-[16px] font-bold text-[#0F172A] mb-12">Appointment Rates</p>
-            <div className="flex flex-wrap items-center justify-around gap-10 flex-1">
+          <AnalyticsCard className="flex flex-col h-full">
+            <p className="text-[16px] font-bold text-[#0F172A] mb-8">Appointment Rates</p>
+            <ChartContainer className="flex flex-wrap items-center justify-around gap-10 flex-1">
               <RingProgress value={apptAnalytics.showRate} label="Show Rate" color={PALETTE.success} size={140} />
               <RingProgress value={apptAnalytics.noShowRate} label="No-Show Rate" color={PALETTE.danger} size={140} />
               <RingProgress value={apptAnalytics.successRate} label="Success Rate" color={PALETTE.primary} size={140} />
-            </div>
-          </div>
+            </ChartContainer>
+          </AnalyticsCard>
           <div className="h-full">
             <DonutChart
               data={[
@@ -1008,11 +1063,10 @@ export default function AnalyticsPage() {
             />
           </div>
         </div>
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 8: Follow-Up Analytics ────────────────────────────────── */}
-      <section>
-        <SectionHeader icon={Clock} title="Follow-Up Analytics" subtitle="Effectiveness of your follow-up system" />
+      <AnalyticsSection icon={Clock} title="Follow-Up Analytics" subtitle="Effectiveness of your follow-up system">
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
           <StatCard label="Pending" value={followUpAnalytics.pending} icon={Clock} color={PALETTE.warning} />
           <StatCard label="Completed" value={followUpAnalytics.completed} icon={CheckCircle2} color={PALETTE.success} />
@@ -1020,7 +1074,7 @@ export default function AnalyticsPage() {
           <StatCard label="Avg Delay" value={followUpAnalytics.avgDelayHours > 0 ? `${followUpAnalytics.avgDelayHours.toFixed(1)}h` : '—'} sub="For overdue items" icon={Activity} color={PALETTE.warning} />
           <StatCard label="Failed" value={followUpAnalytics.failed} icon={XCircle} color={PALETTE.slate} />
         </div>
-        <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10">
+        <AnalyticsCard>
           <div className="flex items-center justify-between mb-8">
             <p className="text-[16px] font-bold text-[#0F172A]">Follow-Up Completion Rate</p>
             <span className="text-[20px] font-bold text-[#0F172A]">
@@ -1044,12 +1098,11 @@ export default function AnalyticsPage() {
               </span>
             )}
           </div>
-        </div>
-      </section>
+        </AnalyticsCard>
+      </AnalyticsSection>
 
       {/* ── Section 9: Conversation Analytics ─────────────────────────────── */}
-      <section>
-        <SectionHeader icon={MessageSquare} title="Conversation Analytics" subtitle="Communication activity across all channels" />
+      <AnalyticsSection icon={MessageSquare} title="Conversation Analytics" subtitle="Communication activity across all channels">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
           <StatCard label="Total Messages" value={convAnalytics.totalMessages} icon={MessageSquare} color={PALETTE.primary} />
           <StatCard label="Unique Leads" value={convAnalytics.uniqueLeads} icon={Users} color={PALETTE.primary} />
@@ -1065,9 +1118,10 @@ export default function AnalyticsPage() {
         </div>
 
         {convAnalytics.totalMessages > 0 && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] p-10">
-            <p className="text-[16px] font-bold text-[#0F172A] mb-10">Message Breakdown</p>
-            <div className="w-full h-16 flex rounded-xl overflow-hidden mb-8 shadow-sm">
+          <AnalyticsCard>
+            <p className="text-[16px] font-bold text-[#0F172A] mb-8">Message Breakdown</p>
+            <ChartContainer>
+              <div className="w-full h-16 flex rounded-xl overflow-hidden mb-8 shadow-sm">
               {[
                 { label: 'AI Messages', value: convAnalytics.aiMessages, color: PALETTE.ai },
                 { label: 'Owner Messages', value: convAnalytics.ownerMessages, color: PALETTE.primary },
@@ -1098,13 +1152,13 @@ export default function AnalyticsPage() {
                 </div>
               ))}
             </div>
-          </div>
+            </ChartContainer>
+          </AnalyticsCard>
         )}
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 10: Revenue Potential ─────────────────────────────────── */}
-      <section>
-        <SectionHeader icon={DollarSign} title="Revenue Potential" subtitle="Forecast based on qualified, booked, and proposal-sent leads only" />
+      <AnalyticsSection icon={DollarSign} title="Revenue Potential" subtitle="Forecast based on qualified, booked, and proposal-sent leads only">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             label="Pipeline Value"
@@ -1134,15 +1188,14 @@ export default function AnalyticsPage() {
             <PremiumEmptyState icon={DollarSign} title="No Revenue Data" desc="Budget information will appear here once leads share their budget constraints with the AI assistant." />
           </div>
         )}
-      </section>
+      </AnalyticsSection>
 
       {/* ── Section 11: AI Generated Insights ────────────────────────────── */}
-      <section>
-        <SectionHeader icon={Brain} title="AI Business Insights" subtitle="Deep intelligence layer powered by your CRM data" />
+      <AnalyticsSection icon={Brain} title="AI Business Insights" subtitle="Deep intelligence layer powered by your CRM data">
 
         {/* Trigger panel */}
         {!aiInsights && !aiLoading && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-16 flex flex-col items-center justify-center gap-8 text-center shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] relative overflow-hidden group min-h-[400px]">
+          <AnalyticsCard className="p-16 flex flex-col items-center justify-center gap-8 text-center relative overflow-hidden group min-h-[400px]">
             <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-lg shadow-[#8B5CF6]/30 relative z-10">
               <Brain size={48} className="text-white" />
@@ -1184,7 +1237,7 @@ export default function AnalyticsPage() {
 
         {/* Loading */}
         {aiLoading && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-24 flex flex-col items-center justify-center gap-8 shadow-[0_2px_8px_rgba(15,23,42,0.04)] min-h-[400px]">
+          <AnalyticsCard className="p-24 flex flex-col items-center justify-center gap-8 min-h-[400px]">
             <Loader2 size={48} className="text-[#8B5CF6] animate-spin" />
             <p className="text-[18px] font-bold text-[#0F172A]">Synthesizing CRM data…</p>
           </div>
@@ -1192,7 +1245,7 @@ export default function AnalyticsPage() {
 
         {/* Insights */}
         {aiInsights && !aiLoading && (
-          <div className="bg-white border border-[rgba(15,23,42,0.06)] rounded-2xl p-10 shadow-[0_2px_8px_rgba(15,23,42,0.04),_0_12px_24px_rgba(15,23,42,0.02)] relative overflow-hidden">
+          <AnalyticsCard className="relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9]" />
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-center gap-5">
@@ -1237,9 +1290,9 @@ export default function AnalyticsPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </AnalyticsCard>
         )}
-      </section>
+      </AnalyticsSection>
 
     </div>
   );
