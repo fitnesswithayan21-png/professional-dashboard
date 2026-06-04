@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { DashboardGrid } from "@/components/ui/DashboardGrid";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { MetricCard } from "@/components/ui/MetricCard";
 import Link from "next/link";
 
 const PAGE_SIZE = 12;
@@ -229,69 +231,31 @@ export default function LeadsPage() {
 
   return (
     <PageContainer>
-      {/* Issue 7: Spacing hierarchy */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-        <p className="text-[13px] text-slate-500 leading-none">
-          Manage, qualify, and track your active sales pipeline leads.
-        </p>
-      </div>
+      <SectionHeader
+        title="Leads Pipeline"
+        description="Manage, qualify, and track your active sales pipeline leads."
+      />
 
-      {/* Issue 1: KPI Summary Metric Cards (88px height, 12px border radius, 16px padding) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-[640px]">
-        {/* Total Leads Card */}
-        <div className="h-[88px] bg-white border border-[#E2E8F0] rounded-[12px] p-[16px] flex flex-col justify-between items-center text-center shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-md transition-all duration-200">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider leading-none">
-              TOTAL LEADS
-            </span>
-            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-full leading-none">
-              +12%
-            </span>
-          </div>
-          <div className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mt-0.5">
-            {totalLeads}
-          </div>
-          <div className="text-[10px] text-slate-400 font-medium leading-none">
-            vs last month
-          </div>
-        </div>
-
-        {/* Qualified Card */}
-        <div className="h-[88px] bg-white border border-[#E2E8F0] rounded-[12px] p-[16px] flex flex-col justify-between items-center text-center shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-md transition-all duration-200">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider leading-none">
-              QUALIFIED
-            </span>
-            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-full leading-none">
-              +8%
-            </span>
-          </div>
-          <div className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mt-0.5">
-            {qualifiedLeads}
-          </div>
-          <div className="text-[10px] text-slate-400 font-medium leading-none">
-            vs last week
-          </div>
-        </div>
-
-        {/* New Today Card */}
-        <div className="h-[88px] bg-white border border-[#E2E8F0] rounded-[12px] p-[16px] flex flex-col justify-between items-center text-center shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-md transition-all duration-200">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider leading-none">
-              NEW TODAY
-            </span>
-            <span className="text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-100 px-1.5 py-0.5 rounded-full leading-none">
-              +4%
-            </span>
-          </div>
-          <div className="text-[28px] font-bold text-slate-900 tracking-tight leading-none mt-0.5">
-            {newLeads}
-          </div>
-          <div className="text-[10px] text-slate-400 font-medium leading-none">
-            vs yesterday
-          </div>
-        </div>
-      </div>
+      <DashboardGrid columns={3}>
+        <MetricCard
+          title="Total Leads"
+          value={totalLeads.toString()}
+          trend={{ value: 12, isPositive: true }}
+          subtitle="vs last month"
+        />
+        <MetricCard
+          title="Qualified"
+          value={qualifiedLeads.toString()}
+          trend={{ value: 8, isPositive: true }}
+          subtitle="vs last week"
+        />
+        <MetricCard
+          title="New Today"
+          value={newLeads.toString()}
+          trend={{ value: 4, isPositive: true }}
+          subtitle="vs yesterday"
+        />
+      </DashboardGrid>
 
       {/* Issue 6: Unified Horizontal Toolbar (Gap 12px, Height 44px, Vertical center) */}
       <div className="flex flex-col lg:flex-row items-center justify-between gap-3 w-full">

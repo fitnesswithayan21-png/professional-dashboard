@@ -24,6 +24,9 @@ import {
   Smartphone,
 } from "lucide-react";
 import { PageContainer } from "@/components/ui/PageContainer";
+import { DashboardGrid } from "@/components/ui/DashboardGrid";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { MetricCard } from "@/components/ui/MetricCard";
 
 export default function FollowUpsPage() {
   const { followUps } = useCRMStore();
@@ -71,91 +74,38 @@ export default function FollowUpsPage() {
 
   return (
     <PageContainer>
-      {/* Action Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
-        <p className="text-[13px] text-slate-500">
-          Monitor automated sequences, delivery states, and dispatch outbound
-          outreach campaigns.
-        </p>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="text-xs font-semibold gap-1.5 h-9 border-slate-200"
-          >
-            <Sliders className="h-3.5 w-3.5 text-slate-400" />
-            Config Sequences
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            className="text-xs font-bold gap-1.5 h-9 bg-[#2563EB] hover:bg-blue-700 shadow-xs"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New Sequence
-          </Button>
-        </div>
-      </div>
+      <SectionHeader
+        title="Follow-ups & Outreach"
+        description="Monitor automated sequences, delivery states, and dispatch outbound outreach campaigns."
+        action={{
+          label: "New Sequence",
+          onClick: () => {}
+        }}
+      />
 
-      {/* Outreach Analytics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white border border-slate-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            Total Queue
-          </p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-slate-900">
-              {stats.total}
-            </span>
-            <span className="text-[11px] text-blue-600 font-semibold uppercase">
-              100% Automated
-            </span>
-          </div>
-        </Card>
-
-        <Card className="bg-white border border-slate-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            Outbox Pending
-          </p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-slate-900">
-              {stats.pending}
-            </span>
-            <span className="text-[11px] text-amber-600 font-semibold uppercase">
-              Auto-dispatching
-            </span>
-          </div>
-        </Card>
-
-        <Card className="bg-white border border-slate-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            Delivered Outreach
-          </p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-emerald-600">
-              {stats.completed}
-            </span>
-            <span className="text-[11px] text-emerald-600 font-semibold uppercase">
-              99.8% Success
-            </span>
-          </div>
-        </Card>
-
-        <Card className="bg-white border border-slate-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            Response rate
-          </p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold text-slate-900">
-              {stats.responseRate}%
-            </span>
-            <span className="text-[11px] text-blue-600 font-semibold flex items-center gap-1 uppercase">
-              <TrendingUp className="h-3 w-3" />
-              Above Benchmark
-            </span>
-          </div>
-        </Card>
-      </div>
+      <DashboardGrid columns={4}>
+        <MetricCard
+          title="Total Queue"
+          value={stats.total.toString()}
+          subtitle="100% Automated"
+        />
+        <MetricCard
+          title="Outbox Pending"
+          value={stats.pending.toString()}
+          subtitle="Auto-dispatching"
+        />
+        <MetricCard
+          title="Delivered Outreach"
+          value={stats.completed.toString()}
+          subtitle="99.8% Success"
+        />
+        <MetricCard
+          title="Response Rate"
+          value={`${stats.responseRate}%`}
+          trend={{ value: 2, isPositive: true }}
+          subtitle="Above Benchmark"
+        />
+      </DashboardGrid>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: Queue Timeline */}

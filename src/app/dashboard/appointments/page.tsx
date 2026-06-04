@@ -18,6 +18,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { PageContainer } from "@/components/ui/PageContainer";
+import { DashboardGrid } from "@/components/ui/DashboardGrid";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { MetricCard } from "@/components/ui/MetricCard";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -270,35 +273,39 @@ export default function AppointmentsPage() {
 
   return (
     <PageContainer>
-      {/* Ambient Background Glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent pointer-events-none -z-10" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-50/40 via-transparent to-transparent pointer-events-none -z-10" />
+      <SectionHeader
+        title="Appointments"
+        description="Manage your schedule, upcoming meetings, and past appointments."
+        action={{
+          label: "New Appointment",
+          onClick: () => {}
+        }}
+      />
 
-      {/* Action Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4 text-[13px] text-slate-500 font-medium z-10 relative">
-          <div className="group flex items-center gap-3 bg-white/90 backdrop-blur-xl px-5 py-2.5 rounded-[18px] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5">
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-50 text-blue-600 font-bold text-[14px] shadow-sm group-hover:scale-110 transition-transform duration-300">
-              {statusCounts.scheduled}
-            </div>
-            <span className="text-slate-600 font-semibold tracking-tight">
-              Upcoming
-            </span>
-          </div>
-          <div className="group flex items-center gap-3 bg-white/90 backdrop-blur-xl px-5 py-2.5 rounded-[18px] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5">
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 font-bold text-[14px] shadow-sm group-hover:scale-110 transition-transform duration-300">
-              {statusCounts.completed}
-            </div>
-            <span className="text-slate-600 font-semibold tracking-tight">
-              Completed
-            </span>
-          </div>
-        </div>
-
-        <Button className="h-10 px-6 w-[160px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg rounded-[14px] transition-all duration-300 font-semibold border-none">
-          New Appointment
-        </Button>
-      </div>
+      <DashboardGrid columns={4}>
+        <MetricCard
+          title="Total Appointments"
+          value={statusCounts.all.toString()}
+          subtitle="All time"
+        />
+        <MetricCard
+          title="Upcoming"
+          value={statusCounts.scheduled.toString()}
+          trend={{ value: 2, isPositive: true }}
+          subtitle="This week"
+        />
+        <MetricCard
+          title="Completed"
+          value={statusCounts.completed.toString()}
+          trend={{ value: 5, isPositive: true }}
+          subtitle="This month"
+        />
+        <MetricCard
+          title="Cancelled"
+          value={statusCounts.cancelled.toString()}
+          subtitle="This month"
+        />
+      </DashboardGrid>
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between relative z-10">
