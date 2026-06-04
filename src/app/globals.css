@@ -21,6 +21,19 @@
   --color-text-muted:     #94A3B8;
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Premium SaaS Shadow Scale */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
+  --shadow-elevated: 0 4px 6px rgba(0,0,0,0.04), 0 10px 24px rgba(0,0,0,0.06);
+  --shadow-modal: 0 10px 25px rgba(0,0,0,0.08), 0 20px 48px rgba(0,0,0,0.12);
+  --shadow-popover: 0 4px 12px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.08);
+
+  /* Centralized Radius Scale */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
+  --radius-xl: 1rem;     /* 16px */
+  --radius-2xl: 1.5rem;  /* 24px */
 }
 
 *, *::before, *::after {

@@ -14,13 +14,12 @@ export function Card({ children, className, padding = 'default', hoverable = fal
   return (
     <div
       className={cn(
-        'bg-white border border-[#E2E8F0] rounded-xl',
-        'shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
-        hoverable && 'transition-shadow duration-150 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] cursor-pointer',
+        'bg-white border border-slate-200 rounded-xl overflow-hidden shadow-card relative',
+        hoverable && 'transition-shadow duration-150 hover:shadow-elevated cursor-pointer',
         padding === 'none' && '',
         padding === 'sm' && 'p-4',
-        padding === 'default' && 'p-5',
-        padding === 'lg' && 'p-6',
+        padding === 'default' && 'p-6',
+        padding === 'lg' && 'p-8',
         className
       )}
       onClick={onClick}
