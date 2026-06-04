@@ -202,13 +202,14 @@ function StatCard({
 }) {
   return (
     <AnalyticsCard highlight={highlight}>
-      {/* Top Row: Icon + Trend */}
+      {/* Header Row: Icon + Title on left, Trend on right */}
       <div className="flex items-center justify-between mb-4">
-        <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
-          <Icon size={20} style={{ color }} strokeWidth={2.5} />
+        <div className="flex items-center gap-2 text-[#64748B]">
+          <Icon size={18} style={{ color }} strokeWidth={2.5} />
+          <span className="text-[14px] font-bold uppercase tracking-widest">{label}</span>
         </div>
         {trend && (
-          <div className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg ${
+          <div className={`inline-flex items-center gap-1 text-[13px] font-bold px-2.5 py-1 rounded-md ${
             trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
             trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
             'text-[#64748B] bg-[#F1F5F9]'
@@ -221,16 +222,17 @@ function StatCard({
         )}
       </div>
 
-      {/* Middle: Metric */}
-      <div className="mb-1">
-        <p className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
+      {/* Main Metric focal point */}
+      <div className="mb-2">
+        <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
       </div>
 
-      {/* Bottom: Label + Subtitle */}
-      <div className="flex items-baseline gap-2">
-        <p className="text-[14px] font-bold text-[#475569]">{label}</p>
-        {sub && <span className="text-[13px] font-medium text-[#94A3B8]">{sub}</span>}
-      </div>
+      {/* Supporting Text */}
+      {sub && (
+        <div>
+          <span className="text-[14px] font-medium text-[#94A3B8]">{sub}</span>
+        </div>
+      )}
     </AnalyticsCard>
   );
 }
@@ -947,24 +949,24 @@ export default function AnalyticsPage() {
                     <TierIcon size={120} style={{ color }} />
                   </div>
                   
-                  {/* Top Row: Icon + Share */}
+                  {/* Header Row: Icon + Title on left, Share on right */}
                   <div className="flex items-center justify-between mb-4 relative z-10">
-                    <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
-                      <TierIcon size={20} style={{ color }} strokeWidth={2.5} />
+                    <div className="flex items-center gap-2 text-[#64748B]">
+                      <TierIcon size={18} style={{ color }} strokeWidth={2.5} />
+                      <span className="text-[14px] font-bold uppercase tracking-widest">{label}</span>
                     </div>
-                    <div className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg bg-slate-50`} style={{ color }}>
-                      {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}%` : '0%'} Share
+                    <div className="inline-flex items-center text-[13px] font-bold px-2.5 py-1 rounded-md bg-slate-50" style={{ color }}>
+                      {leads.length > 0 ? `${Math.round((count / leads.length) * 100)}%` : '0%'}
                     </div>
                   </div>
 
-                  {/* Middle: Metric */}
-                  <div className="mb-1 relative z-10">
-                    <p className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
+                  {/* Main Metric focal point */}
+                  <div className="mb-4 relative z-10">
+                    <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</p>
                   </div>
                   
-                  {/* Bottom: Label */}
-                  <div className="flex flex-col gap-3 relative z-10">
-                    <p className="text-[14px] font-bold text-[#475569]">{label}</p>
+                  {/* Supporting Progress Bar */}
+                  <div className="relative z-10">
                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-1000" style={{ width: leads.length > 0 ? `${(count / leads.length) * 100}%` : '0%', background: color }} />
                     </div>
