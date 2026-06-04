@@ -149,7 +149,7 @@ export default function LeadsPage() {
     else if (score >= 0) { qualText = 'Fair Qualification'; qualIcon = <Activity className="h-3 w-3 text-blue-500" />; qualTint = 'bg-blue-50 text-blue-700 border-blue-100'; }
 
     // Determine Intent Badge from actual data
-    let intentText = intent !== 'Not Available' ? `${intent.replace(/_/g, ' ')}` : 'Not Available';
+    const intentText = intent !== 'Not Available' ? `${intent.replace(/_/g, ' ')}` : 'Not Available';
     let intentTint = 'bg-slate-50/50 text-slate-600 border-slate-200/50';
     if (intent === 'high' || intent === 'urgent') { intentTint = 'bg-orange-50 text-orange-700 border-orange-100'; }
     else if (intent === 'medium') { intentTint = 'bg-blue-50 text-blue-700 border-blue-100'; }

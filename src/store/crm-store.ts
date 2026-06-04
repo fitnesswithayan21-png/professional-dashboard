@@ -254,7 +254,7 @@ export const useCRMStore = create<CRMState>()(
       loadSettingsFromDB: async () => {
         try {
           // 1. Get authenticated session
-          let { data: { session } } = await supabase.auth.getSession();
+          const { data: { session } } = await supabase.auth.getSession();
 
           if (session?.user) {
             // 2. Fetch user's settings from Supabase
@@ -309,7 +309,7 @@ export const useCRMStore = create<CRMState>()(
       saveSettingsToDB: async (newSettings: Settings) => {
         try {
           // 1. Get authenticated session
-          let { data: { session } } = await supabase.auth.getSession();
+          const { data: { session } } = await supabase.auth.getSession();
 
           if (session?.user) {
             const payload = {
