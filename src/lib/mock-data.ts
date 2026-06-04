@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Lead, Conversation, AIMemory, Appointment, FollowUp, BusinessKnowledge } from "@/types";
 
 // ============================================
