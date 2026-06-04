@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Card } from './Card';
+import { Card } from './card';
 import { ChartContainer } from './ChartContainer';
 import { cn } from '@/lib/utils';
 

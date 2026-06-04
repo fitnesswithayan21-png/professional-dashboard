@@ -14,6 +14,18 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
+import { PageContainer } from '@/components/ui/PageContainer';
+import { SectionContainer } from '@/components/ui/SectionContainer';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { MetricCard } from '@/components/ui/MetricCard';
+import { ChartCard } from '@/components/ui/ChartCard';
+import { InsightCard } from '@/components/ui/InsightCard';
+import { Card } from '@/components/ui/card';
+import { ProfileCard } from '@/components/ui/ProfileCard';
+import { DataCard } from '@/components/ui/DataCard';
+import { ChartContainer } from '@/components/ui/ChartContainer';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Users,
   Target,
@@ -101,165 +113,8 @@ function ChartTooltip({
   );
 }
 
-// ─── Section Header ─────────────────────────────────────────────────────────
-function SectionHeader({ icon: Icon, title, subtitle }: {
-  icon: React.ElementType;
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <div className="flex items-center gap-5">
-      <div className="h-12 w-12 rounded-2xl bg-white border border-[rgba(15,23,42,0.08)] flex items-center justify-center shrink-0 shadow-[0_2px_8px_rgba(15,23,42,0.04)]">
-        <Icon className="h-6 w-6 text-slate-700" strokeWidth={2} />
-      </div>
-      <div>
-        <h2 className="text-[20px] font-bold text-[#0F172A] leading-tight tracking-tight">{title}</h2>
-        {subtitle && <p className="text-[14px] font-medium text-[#64748B] mt-1">{subtitle}</p>}
-      </div>
-    </div>
-  );
-}
-
 // ─── Reusable Layout Components ──────────────────────────────────────────────
-function AnalyticsSection({ 
-  icon, 
-  title, 
-  subtitle, 
-  children 
-}: { 
-  icon?: React.ElementType;
-  title?: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col mb-10">
-      {(icon && title) && (
-        <div className="mb-6">
-          <SectionHeader icon={icon} title={title} subtitle={subtitle} />
-        </div>
-      )}
-      <div className="flex flex-col gap-6">
-        {children}
-      </div>
-    </section>
-  );
-}
 
-function AnalyticsCard({ 
-  children, 
-  className = '', 
-  highlight = false,
-  noPadding = false
-}: { 
-  children: React.ReactNode;
-  className?: string;
-  highlight?: boolean;
-  noPadding?: boolean;
-}) {
-  return (
-    <div className={`
-      bg-white rounded-2xl flex flex-col 
-      transition-all duration-300 hover:-translate-y-1
-      ${highlight 
-        ? 'border border-[#2563EB]/20 shadow-[0_4px_16px_rgba(37,99,235,0.08)] ring-1 ring-[#2563EB]/5 hover:shadow-[0_8px_24px_rgba(37,99,235,0.1)]' 
-        : 'border border-slate-200/60 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_24px_-4px_rgba(15,23,42,0.08)]'
-      }
-      ${!noPadding ? 'p-6 md:p-8' : ''}
-      ${className}
-    `}>
-      {children}
-    </div>
-  );
-}
-
-
-
-function ChartContainer({ children, className = '' }: { children: React.ReactNode, className?: string }) {
-  return (
-    <div className={`p-6 bg-slate-50/50 rounded-xl border border-slate-100 ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  color = PALETTE.primary,
-  trend,
-  highlight = false,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon: React.ElementType;
-  color?: string;
-  trend?: { value: string; type: 'up' | 'down' | 'neutral' };
-  highlight?: boolean;
-}) {
-  return (
-    <AnalyticsCard highlight={highlight}>
-      {/* Header Row: Icon + Title on left, Trend on right */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-[#64748B]">
-          <Icon size={18} style={{ color }} strokeWidth={2.5} />
-          <span className="text-[14px] font-bold uppercase tracking-widest">{label}</span>
-        </div>
-        {trend && (
-          <div className={`inline-flex items-center gap-1 text-[13px] font-bold px-2.5 py-1 rounded-md ${
-            trend.type === 'up' ? 'text-[#10B981] bg-[#10B981]/10' :
-            trend.type === 'down' ? 'text-[#EF4444] bg-[#EF4444]/10' :
-            'text-[#64748B] bg-[#F1F5F9]'
-          }`}>
-            {trend.type === 'up' && <TrendingUp size={14} strokeWidth={2.5} />}
-            {trend.type === 'down' && <TrendingDown size={14} strokeWidth={2.5} />}
-            {trend.type === 'neutral' && <Minus size={14} strokeWidth={2.5} />}
-            {trend.value}
-          </div>
-        )}
-      </div>
-
-      {/* Main Metric focal point */}
-      <div className="mb-2">
-        <p className="text-[40px] font-bold text-[#0F172A] leading-none tracking-tight">{value}</p>
-      </div>
-
-      {/* Supporting Text */}
-      {sub && (
-        <div>
-          <span className="text-[14px] font-medium text-[#94A3B8]">{sub}</span>
-        </div>
-      )}
-    </AnalyticsCard>
-  );
-}
-
-// ─── Mini Profile Card (For Conv Analytics) ──────────────────────────────────
-function MiniProfileCard({ name, subtitle, count }: { name: string; subtitle: string; count: number }) {
-  return (
-    <AnalyticsCard className="h-full justify-between">
-      <div>
-        <span className="text-[12px] font-bold text-[#64748B] uppercase tracking-widest mb-6 block">Most Active Lead</span>
-        <div className="flex flex-col items-center text-center gap-4 mt-2">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center text-white text-[20px] font-bold shadow-inner ring-4 ring-[#8B5CF6]/10 shrink-0">
-            {name.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="text-[16px] font-bold text-[#0F172A] leading-tight max-w-[160px] truncate mx-auto">{name}</p>
-            <p className="text-[13px] font-medium text-[#64748B] mt-1.5">{subtitle}</p>
-          </div>
-        </div>
-      </div>
-      <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-2">
-        <span className="text-[36px] font-bold text-[#0F172A] leading-none tracking-tight">{count}</span>
-        <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-wide">Total Messages</span>
-      </div>
-    </AnalyticsCard>
-  );
-}
 
 // ─── Donut with Legend ───────────────────────────────────────────────────────
 function DonutChart({
@@ -275,7 +130,7 @@ function DonutChart({
   const nonEmpty = data.filter(d => d.value > 0);
 
   return (
-    <AnalyticsCard className="h-full flex flex-col">
+    <Card>
       <p className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest mb-8">{title}</p>
       
       {total === 0 || nonEmpty.length === 0 ? (
@@ -330,7 +185,7 @@ function DonutChart({
           </div>
         </ChartContainer>
       )}
-    </AnalyticsCard>
+    </Card>
   );
 }
 
@@ -381,19 +236,6 @@ function RingProgress({
         </div>
       </div>
       <span className="text-[13px] font-bold text-[#64748B] uppercase tracking-widest text-center mt-2">{label}</span>
-    </div>
-  );
-}
-
-// ─── Premium Empty State ─────────────────────────────────────────────────────
-function PremiumEmptyState({ icon: Icon, title, desc }: { icon: React.ElementType, title: string, desc: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 rounded-2xl border border-slate-100 border-dashed h-full min-h-[240px]">
-      <div className="h-16 w-16 bg-white border border-slate-200 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-        <Icon size={28} className="text-slate-400 stroke-[2]" />
-      </div>
-      <p className="text-[16px] font-bold text-[#0F172A] mb-2">{title}</p>
-      <p className="text-[14px] font-medium text-[#64748B] max-w-[280px] leading-relaxed">{desc}</p>
     </div>
   );
 }
@@ -796,13 +638,13 @@ export default function AnalyticsPage() {
     return (
       <div className="flex flex-col gap-10 p-10 animate-pulse">
         <div className="h-48 bg-slate-100 rounded-2xl w-full"></div>
-        <div className="grid grid-cols-4 gap-6">
+        <DashboardGrid columns={3}>
           {[1,2,3,4].map(i => <div key={i} className="h-40 bg-slate-100 rounded-2xl"></div>)}
-        </div>
-        <div className="grid grid-cols-2 gap-6">
+        </DashboardGrid>
+        <DashboardGrid columns={3}>
           <div className="h-80 bg-slate-100 rounded-2xl"></div>
           <div className="h-80 bg-slate-100 rounded-2xl"></div>
-        </div>
+        </DashboardGrid>
       </div>
     );
   }
@@ -811,11 +653,11 @@ export default function AnalyticsPage() {
   // RENDER
   // ──────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-10 animate-fade-in pb-16 max-w-[1600px] mx-auto w-full">
+    <PageContainer>
 
       {/* ── Executive Summary Banner ───────────────────────────────────────── */}
-      <AnalyticsSection>
-        <AnalyticsCard className="flex flex-col md:flex-row items-start md:items-center justify-between gap-10 relative overflow-hidden" noPadding>
+      <SectionContainer>
+        <Card>
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#10B981] to-[#34D399]" />
           <div className="p-8 pb-4 md:pb-8 md:pr-0 mt-1">
             <p className="text-[14px] font-bold text-[#64748B] uppercase tracking-widest mb-3">Executive Summary</p>
@@ -836,7 +678,7 @@ export default function AnalyticsPage() {
               <p className="text-[20px] font-bold text-[#10B981]">{fmtCurrency(revenueData.pipelineValue)}</p>
             </div>
           </div>
-        </AnalyticsCard>
+        </Card>
         {attentionItems.length > 0 && (
           <div className="mt-2 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4 shadow-sm">
             <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-[#FDE68A]">
@@ -848,31 +690,32 @@ export default function AnalyticsPage() {
             </div>
           </div>
         )}
-      </AnalyticsSection>
+      </SectionContainer>
 
       {/* ── Section 2: KPI Overview ───────────────────────────────────────── */}
-      <AnalyticsSection icon={Target} title="Pipeline Overview" subtitle="Key performance indicators across your entire CRM">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard label="Total Leads" value={kpiData.totalLeads} icon={Users} color={PALETTE.primary} />
-          <StatCard label="Active Leads" value={kpiData.activeLeads} icon={Activity} color={PALETTE.primary} trend={{ value: `${kpiData.activeLeads} active`, type: 'neutral' }} />
-          <StatCard label="High Quality" value={kpiData.highQuality} sub="Score > 7" icon={Star} color={PALETTE.ai} trend={kpiData.highQuality > 0 ? { value: 'Strong', type: 'up' } : undefined} />
-          <StatCard label="Appointments" value={kpiData.booked} sub="Booked" icon={Calendar} color={PALETTE.warning} />
-          <StatCard label="Avg Score" value={`${kpiData.avgScore.toFixed(1)}`} sub="Out of 10" icon={Target} color={PALETTE.primary} />
-          <StatCard label="Conversion Rate" value={`${kpiData.conversionRate.toFixed(1)}%`} sub="Leads → Booked" icon={TrendingUp} color={PALETTE.success} trend={kpiData.conversionRate > 0 ? { value: 'Positive', type: 'up' } : undefined} />
-        </div>
-      </AnalyticsSection>
+      <SectionContainer>
+        <SectionHeader title="Pipeline Overview" description="Key performance indicators across your entire CRM" />
+        <DashboardGrid columns={3}>
+          <MetricCard label="Total Leads" value={kpiData.totalLeads} icon={Users} iconColor={PALETTE.primary} />
+          <MetricCard label="Active Leads" value={kpiData.activeLeads} icon={Activity} iconColor={PALETTE.primary} trend={{ value: `${kpiData.activeLeads} active`, type: 'neutral' }} />
+          <MetricCard label="High Quality" value={kpiData.highQuality} sub="Score > 7" icon={Star} iconColor={PALETTE.ai} trend={kpiData.highQuality > 0 ? { value: 'Strong', type: 'up' } : undefined} />
+          <MetricCard label="Appointments" value={kpiData.booked} sub="Booked" icon={Calendar} iconColor={PALETTE.warning} />
+          <MetricCard label="Avg Score" value={`${kpiData.avgScore.toFixed(1)}`} sub="Out of 10" icon={Target} iconColor={PALETTE.primary} />
+          <MetricCard label="Conversion Rate" value={`${kpiData.conversionRate.toFixed(1)}%`} sub="Leads → Booked" icon={TrendingUp} iconColor={PALETTE.success} trend={kpiData.conversionRate > 0 ? { value: 'Positive', type: 'up' } : undefined} />
+        </DashboardGrid>
+      </SectionContainer>
 
       {/* ── Section 3 + 4: Pipeline + Score Tiers ────────────────────────── */}
-      <AnalyticsSection>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+      <SectionContainer>
+        <DashboardGrid columns={2}>
           {/* Pipeline */}
           <div className="flex flex-col h-full">
             <div className="mb-6">
               <SectionHeader icon={ChevronRight} title="Lead Pipeline" subtitle="Breakdown by pipeline stage" />
             </div>
-            <AnalyticsCard className="h-full">
+            <Card>
               {leads.length === 0 ? (
-                <PremiumEmptyState icon={Users} title="No Leads Yet" desc="Your pipeline will populate here as new leads enter the system." />
+                <EmptyState icon={Users} title="No Leads Yet" description="Your pipeline will populate here as new leads enter the system." />
               ) : (
                 <div className="flex flex-col space-y-6 mt-2">
                   {pipelineData.map(stage => {
@@ -926,7 +769,7 @@ export default function AnalyticsPage() {
                   })}
                 </div>
               )}
-            </AnalyticsCard>
+            </Card>
           </div>
 
           {/* Score Tiers */}
@@ -934,17 +777,14 @@ export default function AnalyticsPage() {
             <div className="mb-6">
               <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Pipeline quality distribution based on lead scores." />
             </div>
-            <div className="grid grid-cols-2 gap-6 flex-1 mb-6">
+            <DashboardGrid columns={3}>
               {[
                 { label: 'Hot Leads', count: scoreTiers.hot, color: PALETTE.danger, icon: Flame },
                 { label: 'Warm Leads', count: scoreTiers.warm, color: PALETTE.warning, icon: Thermometer },
                 { label: 'Cold Leads', count: scoreTiers.cold, color: PALETTE.primary, icon: Snowflake },
                 { label: 'Not Interested', count: scoreTiers.notInterested, color: PALETTE.slate, icon: Ban },
               ].map(({ label, count, color, icon: TierIcon }) => (
-                <AnalyticsCard
-                  key={label}
-                  className="relative overflow-hidden"
-                >
+                <Card>
                   <div className="absolute -bottom-4 -right-4 opacity-[0.03] pointer-events-none">
                     <TierIcon size={120} style={{ color }} />
                   </div>
@@ -971,9 +811,9 @@ export default function AnalyticsPage() {
                       <div className="h-full rounded-full transition-all duration-1000" style={{ width: leads.length > 0 ? `${(count / leads.length) * 100}%` : '0%', background: color }} />
                     </div>
                   </div>
-                </AnalyticsCard>
+                </Card>
               ))}
-            </div>
+            </DashboardGrid>
             <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 flex items-start gap-4 shadow-sm mt-auto">
               <div className="bg-white rounded-lg p-1.5 shadow-sm border border-slate-100 shrink-0">
                 <Star className="text-[#8B5CF6]" size={16} strokeWidth={2.5} />
@@ -983,14 +823,15 @@ export default function AnalyticsPage() {
               </p>
             </div>
           </div>
-        </div>
-      </AnalyticsSection>
+        </DashboardGrid>
+      </SectionContainer>
 
       {/* ── Section 5: Lead Source Performance ────────────────────────────── */}
-      <AnalyticsSection icon={Zap} title="Lead Source Performance" subtitle="Where your leads are coming from">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <SectionContainer>
+        <SectionHeader title="Lead Source Performance" description="Where your leads are coming from" />
+        <DashboardGrid columns={3}>
           {/* Bar chart */}
-          <AnalyticsCard className="lg:col-span-2 flex flex-col h-full">
+          <Card>
             <div className="flex items-center justify-between mb-8">
               <p className="text-[16px] font-bold text-[#0F172A]">Sources by Volume</p>
               {bestSource !== '—' && (
@@ -1000,7 +841,7 @@ export default function AnalyticsPage() {
               )}
             </div>
             {sourceData.length === 0 ? (
-              <PremiumEmptyState icon={Zap} title="No Sources Tracked" desc="Lead source data will appear here once leads enter the system." />
+              <EmptyState icon={Zap} title="No Sources Tracked" description="Lead source data will appear here once leads enter the system." />
             ) : (
               <ChartContainer className="h-[360px] w-full flex-1">
                 <ResponsiveContainer width="100%" height="100%">
@@ -1030,40 +871,42 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </ChartContainer>
             )}
-          </AnalyticsCard>
+          </Card>
 
           <div className="h-full">
             <DonutChart data={sourceData} title="Source Distribution" emptyText="No sources tracked yet." />
           </div>
-        </div>
-      </AnalyticsSection>
+        </DashboardGrid>
+      </SectionContainer>
 
       {/* ── Section 6: Lead Intelligence ──────────────────────────────────── */}
-      <AnalyticsSection icon={Brain} title="Lead Intelligence" subtitle="Intent, urgency, and business type extracted from AI memory">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <SectionContainer>
+        <SectionHeader title="Lead Intelligence" description="Intent, urgency, and business type extracted from AI memory" />
+        <DashboardGrid columns={3}>
           <DonutChart data={intentData} title="Intent Distribution" emptyText="No intent data captured." />
           <DonutChart data={urgencyData} title="Urgency Distribution" emptyText="No urgency data captured." />
           <DonutChart data={businessTypeData} title="Business Type Distribution" emptyText="No business type data yet." />
-        </div>
-      </AnalyticsSection>
+        </DashboardGrid>
+      </SectionContainer>
 
       {/* ── Section 7: Appointment Analytics ──────────────────────────────── */}
-      <AnalyticsSection icon={Calendar} title="Appointment Analytics" subtitle="Performance and conversion tracking">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <StatCard label="Scheduled" value={apptAnalytics.upcoming} icon={Calendar} color={PALETTE.primary} />
-          <StatCard label="Completed" value={apptAnalytics.completed} icon={CheckCircle2} color={PALETTE.success} />
-          <StatCard label="No Shows" value={apptAnalytics.noShow} icon={XCircle} color={PALETTE.danger} />
-          <StatCard label="Cancelled" value={apptAnalytics.cancelled} icon={AlertTriangle} color={PALETTE.warning} />
-        </div>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <AnalyticsCard className="flex flex-col h-full">
+      <SectionContainer>
+        <SectionHeader title="Appointment Analytics" description="Performance and conversion tracking" />
+        <DashboardGrid columns={4}>
+          <MetricCard label="Scheduled" value={apptAnalytics.upcoming} icon={Calendar} iconColor={PALETTE.primary} />
+          <MetricCard label="Completed" value={apptAnalytics.completed} icon={CheckCircle2} iconColor={PALETTE.success} />
+          <MetricCard label="No Shows" value={apptAnalytics.noShow} icon={XCircle} iconColor={PALETTE.danger} />
+          <MetricCard label="Cancelled" value={apptAnalytics.cancelled} icon={AlertTriangle} iconColor={PALETTE.warning} />
+        </DashboardGrid>
+        <DashboardGrid columns={2}>
+          <Card>
             <p className="text-[16px] font-bold text-[#0F172A] mb-8">Appointment Rates</p>
             <ChartContainer className="flex flex-wrap items-center justify-around gap-10 flex-1">
-              <RingProgress value={apptAnalytics.showRate} label="Show Rate" color={PALETTE.success} size={140} />
-              <RingProgress value={apptAnalytics.noShowRate} label="No-Show Rate" color={PALETTE.danger} size={140} />
-              <RingProgress value={apptAnalytics.successRate} label="Success Rate" color={PALETTE.primary} size={140} />
+              <RingProgress value={apptAnalytics.showRate} label="Show Rate" iconColor={PALETTE.success} size={140} />
+              <RingProgress value={apptAnalytics.noShowRate} label="No-Show Rate" iconColor={PALETTE.danger} size={140} />
+              <RingProgress value={apptAnalytics.successRate} label="Success Rate" iconColor={PALETTE.primary} size={140} />
             </ChartContainer>
-          </AnalyticsCard>
+          </Card>
           <div className="h-full">
             <DonutChart
               data={[
@@ -1076,19 +919,20 @@ export default function AnalyticsPage() {
               emptyText="No appointments booked yet."
             />
           </div>
-        </div>
-      </AnalyticsSection>
+        </DashboardGrid>
+      </SectionContainer>
 
       {/* ── Section 8: Follow-Up Analytics ────────────────────────────────── */}
-      <AnalyticsSection icon={Clock} title="Follow-Up Analytics" subtitle="Effectiveness of your follow-up system">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
-          <StatCard label="Pending" value={followUpAnalytics.pending} icon={Clock} color={PALETTE.warning} />
-          <StatCard label="Completed" value={followUpAnalytics.completed} icon={CheckCircle2} color={PALETTE.success} />
-          <StatCard label="Overdue" value={followUpAnalytics.overdue} icon={AlertTriangle} color={PALETTE.danger} highlight={followUpAnalytics.overdue > 0} />
-          <StatCard label="Avg Delay" value={followUpAnalytics.avgDelayHours > 0 ? `${followUpAnalytics.avgDelayHours.toFixed(1)}h` : '—'} sub="For overdue items" icon={Activity} color={PALETTE.warning} />
-          <StatCard label="Failed" value={followUpAnalytics.failed} icon={XCircle} color={PALETTE.slate} />
-        </div>
-        <AnalyticsCard>
+      <SectionContainer>
+        <SectionHeader title="Follow-Up Analytics" description="Effectiveness of your follow-up system" />
+        <DashboardGrid columns={3}>
+          <MetricCard label="Pending" value={followUpAnalytics.pending} icon={Clock} iconColor={PALETTE.warning} />
+          <MetricCard label="Completed" value={followUpAnalytics.completed} icon={CheckCircle2} iconColor={PALETTE.success} />
+          <MetricCard label="Overdue" value={followUpAnalytics.overdue} icon={AlertTriangle} iconColor={PALETTE.danger} highlight={followUpAnalytics.overdue > 0} />
+          <MetricCard label="Avg Delay" value={followUpAnalytics.avgDelayHours > 0 ? `${followUpAnalytics.avgDelayHours.toFixed(1)}h` : '—'} sub="For overdue items" icon={Activity} iconColor={PALETTE.warning} />
+          <MetricCard label="Failed" value={followUpAnalytics.failed} icon={XCircle} iconColor={PALETTE.slate} />
+        </DashboardGrid>
+        <Card>
           <div className="flex items-center justify-between mb-8">
             <p className="text-[16px] font-bold text-[#0F172A]">Follow-Up Completion Rate</p>
             <span className="text-[20px] font-bold text-[#0F172A]">
@@ -1112,27 +956,24 @@ export default function AnalyticsPage() {
               </span>
             )}
           </div>
-        </AnalyticsCard>
-      </AnalyticsSection>
+        </Card>
+      </SectionContainer>
 
       {/* ── Section 9: Conversation Analytics ─────────────────────────────── */}
-      <AnalyticsSection icon={MessageSquare} title="Conversation Analytics" subtitle="Communication activity across all channels">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
-          <StatCard label="Total Messages" value={convAnalytics.totalMessages} icon={MessageSquare} color={PALETTE.primary} />
-          <StatCard label="Unique Leads" value={convAnalytics.uniqueLeads} icon={Users} color={PALETTE.primary} />
-          <StatCard label="Owner Messages" value={convAnalytics.ownerMessages} icon={UserCheck} color={PALETTE.ai} />
-          <StatCard label="AI Messages" value={convAnalytics.aiMessages} icon={Brain} color={PALETTE.ai} />
-          <StatCard label="Avg / Lead" value={convAnalytics.avgPerLead.toFixed(1)} icon={Activity} color={PALETTE.success} />
+      <SectionContainer>
+        <SectionHeader title="Conversation Analytics" description="Communication activity across all channels" />
+        <DashboardGrid columns={3}>
+          <MetricCard label="Total Messages" value={convAnalytics.totalMessages} icon={MessageSquare} iconColor={PALETTE.primary} />
+          <MetricCard label="Unique Leads" value={convAnalytics.uniqueLeads} icon={Users} iconColor={PALETTE.primary} />
+          <MetricCard label="Owner Messages" value={convAnalytics.ownerMessages} icon={UserCheck} iconColor={PALETTE.ai} />
+          <MetricCard label="AI Messages" value={convAnalytics.aiMessages} icon={Brain} iconColor={PALETTE.ai} />
+          <MetricCard label="Avg / Lead" value={convAnalytics.avgPerLead.toFixed(1)} icon={Activity} iconColor={PALETTE.success} />
           
-          <MiniProfileCard 
-            name={convAnalytics.mostActiveLead?.fullName || '—'} 
-            subtitle={convAnalytics.mostActiveLead ? 'Leading conversation' : 'No activity yet'} 
-            count={convAnalytics.mostActiveLead ? (convAnalytics.leadMsgCount[convAnalytics.mostActiveLead.id] ?? 0) : 0} 
-          />
-        </div>
+          <ProfileCard name={convAnalytics.mostActiveLead?.fullName || '—'} status={convAnalytics.mostActiveLead ? 'Leading conversation' : 'No activity yet'} metadata={<>{ convAnalytics.mostActiveLead ? (convAnalytics.leadMsgCount[convAnalytics.mostActiveLead.id] ?? 0) : 0 } messages</>} />
+        </DashboardGrid>
 
         {convAnalytics.totalMessages > 0 && (
-          <AnalyticsCard>
+          <Card>
             <p className="text-[16px] font-bold text-[#0F172A] mb-8">Message Breakdown</p>
             <ChartContainer>
               <div className="w-full h-16 flex rounded-xl overflow-hidden mb-8 shadow-sm">
@@ -1167,19 +1008,20 @@ export default function AnalyticsPage() {
               ))}
             </div>
             </ChartContainer>
-          </AnalyticsCard>
+          </Card>
         )}
-      </AnalyticsSection>
+      </SectionContainer>
 
       {/* ── Section 10: Revenue Potential ─────────────────────────────────── */}
-      <AnalyticsSection icon={DollarSign} title="Revenue Potential" subtitle="Forecast based on qualified, booked, and proposal-sent leads only">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <SectionContainer>
+        <SectionHeader title="Revenue Potential" description="Forecast based on qualified, booked, and proposal-sent leads only" />
+        <DashboardGrid columns={3}>
           <StatCard
             label="Pipeline Value"
             value={revenueData.hasBudgetData ? fmtCurrency(revenueData.pipelineValue) : '—'}
             sub="Qualifying leads"
             icon={TrendingUp}
-            color={PALETTE.success}
+            iconColor={PALETTE.success}
             highlight
           />
           <StatCard
@@ -1187,29 +1029,30 @@ export default function AnalyticsPage() {
             value={revenueData.hasBudgetData ? fmtCurrency(revenueData.avgBudget) : '—'}
             sub="Per qualifying lead"
             icon={DollarSign}
-            color={PALETTE.primary}
+            iconColor={PALETTE.primary}
           />
           <StatCard
             label="Qualifying Leads"
             value={revenueData.qualifyingLeadCount}
             sub="Qualified + Booked + Proposal"
             icon={PhoneCall}
-            color={PALETTE.ai}
+            iconColor={PALETTE.ai}
           />
-        </div>
+        </DashboardGrid>
         {!revenueData.hasBudgetData && (
           <div className="mt-8">
-            <PremiumEmptyState icon={DollarSign} title="No Revenue Data" desc="Budget information will appear here once leads share their budget constraints with the AI assistant." />
+            <EmptyState icon={DollarSign} title="No Revenue Data" description="Budget information will appear here once leads share their budget constraints with the AI assistant." />
           </div>
         )}
-      </AnalyticsSection>
+      </SectionContainer>
 
       {/* ── Section 11: AI Generated Insights ────────────────────────────── */}
-      <AnalyticsSection icon={Brain} title="AI Business Insights" subtitle="Deep intelligence layer powered by your CRM data">
+      <SectionContainer>
+        <SectionHeader title="AI Business Insights" description="Deep intelligence layer powered by your CRM data" />
 
         {/* Trigger panel */}
         {!aiInsights && !aiLoading && (
-          <AnalyticsCard className="p-16 flex flex-col items-center justify-center gap-8 text-center relative overflow-hidden group min-h-[400px]">
+          <Card>
             <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-lg shadow-[#8B5CF6]/30 relative z-10">
               <Brain size={48} className="text-white" />
@@ -1246,20 +1089,20 @@ export default function AnalyticsPage() {
                 <ArrowRight size={18} />
               </button>
             )}
-          </AnalyticsCard>
+          </Card>
         )}
 
         {/* Loading */}
         {aiLoading && (
-          <AnalyticsCard className="p-24 flex flex-col items-center justify-center gap-8 min-h-[400px]">
+          <Card>
             <Loader2 size={48} className="text-[#8B5CF6] animate-spin" />
             <p className="text-[18px] font-bold text-[#0F172A]">Synthesizing CRM data…</p>
-          </AnalyticsCard>
+          </Card>
         )}
 
         {/* Insights */}
         {aiInsights && !aiLoading && (
-          <AnalyticsCard className="relative overflow-hidden">
+          <Card>
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9]" />
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-center gap-5">
@@ -1279,7 +1122,7 @@ export default function AnalyticsPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <DashboardGrid columns={2}>
               {[
                 { title: 'Key Insights', items: aiInsights.keyInsights, color: PALETTE.primary, icon: BarChart2 },
                 { title: 'Opportunities', items: aiInsights.opportunities, color: PALETTE.success, icon: TrendingUp },
@@ -1303,11 +1146,11 @@ export default function AnalyticsPage() {
                   </ul>
                 </div>
               ))}
-            </div>
-          </AnalyticsCard>
+            </DashboardGrid>
+          </Card>
         )}
-      </AnalyticsSection>
+      </SectionContainer>
 
-    </div>
+    </PageContainer>
   );
 }

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Card } from './Card';
+import { Card } from './card';
 import { cn } from '@/lib/utils';
 
 interface DataField {
