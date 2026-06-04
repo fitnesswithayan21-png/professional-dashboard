@@ -36,6 +36,7 @@ import {
   Smartphone,
   Smile
 } from 'lucide-react';
+import { PageContainer } from '@/components/ui/PageContainer';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 
