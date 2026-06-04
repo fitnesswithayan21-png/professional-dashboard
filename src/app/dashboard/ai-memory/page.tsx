@@ -11,6 +11,10 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import { PageContainer } from '@/components/ui/PageContainer';
+import { DashboardGrid } from '@/components/ui/DashboardGrid';
+import { Card } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -120,7 +124,7 @@ export default function AIMemoryPage() {
   }, [summaries, search]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -149,16 +153,10 @@ export default function AIMemoryPage() {
       </div>
 
       {/* ── Grid ────────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+      <DashboardGrid columns={3}>
         {filtered.length === 0 ? (
-          <div className="col-span-full py-24 flex flex-col items-center justify-center text-center">
-            <div className="h-16 w-16 bg-white border border-slate-200 shadow-sm rounded-full flex items-center justify-center mb-5">
-              <Brain className="h-8 w-8 text-slate-300" />
-            </div>
-            <p className="text-[15px] font-bold text-slate-900">No memory records found</p>
-            <p className="text-[13px] text-slate-500 mt-1.5 max-w-xs">
-              {search ? 'Try a different search term.' : 'AI memory records will appear once leads engage.'}
-            </p>
+          <div className="col-span-full py-12">
+            <EmptyState icon={Brain} title="No memory records found" description={search ? 'Try a different search term.' : 'AI memory records will appear once leads engage.'} />
           </div>
         ) : (
           filtered.map(summary => {
@@ -171,9 +169,10 @@ export default function AIMemoryPage() {
             const gradient = scoreColor(leadScore);
 
             return (
-              <div
+              <Card
                 key={leadId}
-                className="group relative flex flex-col bg-white rounded-[22px] border border-slate-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                padding="none"
+                className="group relative flex flex-col hover:shadow-[0_16px_48px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                 {/* Top accent strip */}
                 <div className={cn('h-[3px] w-full bg-gradient-to-r', gradient)} />
@@ -268,11 +267,11 @@ export default function AIMemoryPage() {
                     <ArrowRight className="h-4 w-4 group-hover/link:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
-              </div>
+              </Card>
             );
           })
         )}
-      </div>
-    </div>
+      </DashboardGrid>
+    </PageContainer>
   );
 }
