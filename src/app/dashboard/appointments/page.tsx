@@ -276,34 +276,39 @@ export default function AppointmentsPage() {
       <SectionHeader
         title="Appointments"
         description="Manage your schedule, upcoming meetings, and past appointments."
-        action={{
-          label: "New Appointment",
-          onClick: () => {}
-        }}
+        action={
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 h-9 text-sm font-medium">
+            New Appointment
+          </Button>
+        }
       />
 
       <DashboardGrid columns={4}>
         <MetricCard
-          title="Total Appointments"
+          label="Total Appointments"
           value={statusCounts.all.toString()}
-          subtitle="All time"
+          sub="All time"
+          icon={CalendarIcon}
         />
         <MetricCard
-          title="Upcoming"
+          label="Upcoming"
           value={statusCounts.scheduled.toString()}
-          trend={{ value: 2, isPositive: true }}
-          subtitle="This week"
+          trend={{ value: "2", type: "up" }}
+          sub="This week"
+          icon={Clock}
         />
         <MetricCard
-          title="Completed"
+          label="Completed"
           value={statusCounts.completed.toString()}
-          trend={{ value: 5, isPositive: true }}
-          subtitle="This month"
+          trend={{ value: "5", type: "up" }}
+          sub="This month"
+          icon={Check}
         />
         <MetricCard
-          title="Cancelled"
+          label="Cancelled"
           value={statusCounts.cancelled.toString()}
-          subtitle="This month"
+          sub="This month"
+          icon={X}
         />
       </DashboardGrid>
 

@@ -26,6 +26,7 @@ import {
   Activity,
   AlertCircle,
   CheckCircle2,
+  Users,
 } from "lucide-react";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { DashboardGrid } from "@/components/ui/DashboardGrid";
@@ -238,22 +239,25 @@ export default function LeadsPage() {
 
       <DashboardGrid columns={3}>
         <MetricCard
-          title="Total Leads"
+          label="Total Leads"
           value={totalLeads.toString()}
-          trend={{ value: 12, isPositive: true }}
-          subtitle="vs last month"
+          trend={{ value: "12", type: "up" }}
+          sub="vs last month"
+          icon={Users}
         />
         <MetricCard
-          title="Qualified"
+          label="Qualified"
           value={qualifiedLeads.toString()}
-          trend={{ value: 8, isPositive: true }}
-          subtitle="vs last week"
+          trend={{ value: "8", type: "up" }}
+          sub="vs last week"
+          icon={CheckCircle2}
         />
         <MetricCard
-          title="New Today"
+          label="New Today"
           value={newLeads.toString()}
-          trend={{ value: 4, isPositive: true }}
-          subtitle="vs yesterday"
+          trend={{ value: "4", type: "up" }}
+          sub="vs yesterday"
+          icon={Sparkles}
         />
       </DashboardGrid>
 

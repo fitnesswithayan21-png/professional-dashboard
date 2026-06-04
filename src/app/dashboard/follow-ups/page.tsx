@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, cn } from "@/lib/utils";
 import {
+  List,
   Search,
   Clock,
   Send,
@@ -77,33 +78,38 @@ export default function FollowUpsPage() {
       <SectionHeader
         title="Follow-ups & Outreach"
         description="Monitor automated sequences, delivery states, and dispatch outbound outreach campaigns."
-        action={{
-          label: "New Sequence",
-          onClick: () => {}
-        }}
+        action={
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 h-9 text-sm font-medium">
+            New Sequence
+          </Button>
+        }
       />
 
       <DashboardGrid columns={4}>
         <MetricCard
-          title="Total Queue"
+          label="Total Queue"
           value={stats.total.toString()}
-          subtitle="100% Automated"
+          sub="100% Automated"
+          icon={List}
         />
         <MetricCard
-          title="Outbox Pending"
+          label="Outbox Pending"
           value={stats.pending.toString()}
-          subtitle="Auto-dispatching"
+          sub="Auto-dispatching"
+          icon={Clock}
         />
         <MetricCard
-          title="Delivered Outreach"
+          label="Delivered Outreach"
           value={stats.completed.toString()}
-          subtitle="99.8% Success"
+          sub="99.8% Success"
+          icon={Send}
         />
         <MetricCard
-          title="Response Rate"
+          label="Response Rate"
           value={`${stats.responseRate}%`}
-          trend={{ value: 2, isPositive: true }}
-          subtitle="Above Benchmark"
+          trend={{ value: "2", type: "up" }}
+          sub="Above Benchmark"
+          icon={MessageSquare}
         />
       </DashboardGrid>
 

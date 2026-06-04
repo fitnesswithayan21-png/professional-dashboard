@@ -712,7 +712,7 @@ export default function AnalyticsPage() {
           {/* Pipeline */}
           <div className="flex flex-col h-full">
             <div className="mb-6">
-              <SectionHeader icon={ChevronRight} title="Lead Pipeline" subtitle="Breakdown by pipeline stage" />
+              <SectionHeader title="Lead Pipeline" description="Breakdown by pipeline stage" />
             </div>
             <Card>
               {leads.length === 0 ? (
@@ -776,7 +776,7 @@ export default function AnalyticsPage() {
           {/* Score Tiers */}
           <div className="flex flex-col h-full">
             <div className="mb-6">
-              <SectionHeader icon={Flame} title="Lead Score Tiers" subtitle="Pipeline quality distribution based on lead scores." />
+              <SectionHeader title="Lead Score Tiers" description="Pipeline quality distribution based on lead scores." />
             </div>
             <DashboardGrid columns={3}>
               {[
@@ -903,9 +903,9 @@ export default function AnalyticsPage() {
           <Card>
             <p className="text-[16px] font-bold text-[#0F172A] mb-8">Appointment Rates</p>
             <ChartContainer className="flex flex-wrap items-center justify-around gap-10 flex-1">
-              <RingProgress value={apptAnalytics.showRate} label="Show Rate" iconColor={PALETTE.success} size={140} />
-              <RingProgress value={apptAnalytics.noShowRate} label="No-Show Rate" iconColor={PALETTE.danger} size={140} />
-              <RingProgress value={apptAnalytics.successRate} label="Success Rate" iconColor={PALETTE.primary} size={140} />
+              <RingProgress value={apptAnalytics.showRate} label="Show Rate" color={PALETTE.success} size={140} />
+              <RingProgress value={apptAnalytics.noShowRate} label="No-Show Rate" color={PALETTE.danger} size={140} />
+              <RingProgress value={apptAnalytics.successRate} label="Success Rate" color={PALETTE.primary} size={140} />
             </ChartContainer>
           </Card>
           <div className="h-full">
@@ -929,7 +929,7 @@ export default function AnalyticsPage() {
         <DashboardGrid columns={3}>
           <MetricCard label="Pending" value={followUpAnalytics.pending} icon={Clock} iconColor={PALETTE.warning} />
           <MetricCard label="Completed" value={followUpAnalytics.completed} icon={CheckCircle2} iconColor={PALETTE.success} />
-          <MetricCard label="Overdue" value={followUpAnalytics.overdue} icon={AlertTriangle} iconColor={PALETTE.danger} highlight={followUpAnalytics.overdue > 0} />
+          <MetricCard label="Overdue" value={followUpAnalytics.overdue} icon={AlertTriangle} iconColor={PALETTE.danger} />
           <MetricCard label="Avg Delay" value={followUpAnalytics.avgDelayHours > 0 ? `${followUpAnalytics.avgDelayHours.toFixed(1)}h` : '—'} sub="For overdue items" icon={Activity} iconColor={PALETTE.warning} />
           <MetricCard label="Failed" value={followUpAnalytics.failed} icon={XCircle} iconColor={PALETTE.slate} />
         </DashboardGrid>
@@ -1017,22 +1017,21 @@ export default function AnalyticsPage() {
       <SectionContainer>
         <SectionHeader title="Revenue Potential" description="Forecast based on qualified, booked, and proposal-sent leads only" />
         <DashboardGrid columns={3}>
-          <StatCard
+          <MetricCard
             label="Pipeline Value"
             value={revenueData.hasBudgetData ? fmtCurrency(revenueData.pipelineValue) : '—'}
             sub="Qualifying leads"
             icon={TrendingUp}
             iconColor={PALETTE.success}
-            highlight
-          />
-          <StatCard
+            />
+          <MetricCard
             label="Average Budget"
             value={revenueData.hasBudgetData ? fmtCurrency(revenueData.avgBudget) : '—'}
             sub="Per qualifying lead"
             icon={DollarSign}
             iconColor={PALETTE.primary}
           />
-          <StatCard
+          <MetricCard
             label="Qualifying Leads"
             value={revenueData.qualifyingLeadCount}
             sub="Qualified + Booked + Proposal"

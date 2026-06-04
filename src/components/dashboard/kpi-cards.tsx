@@ -41,7 +41,7 @@ export function KPICards() {
           sub={`${trends[key]} vs last month`}
           icon={Icon}
           iconColor={color}
-          trend={trend}
+          trend={{ value: trends[key] || '', type: trend }}
         />
       ))}
     </DashboardGrid>

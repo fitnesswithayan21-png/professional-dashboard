@@ -19,7 +19,7 @@ export function ProfileCard({ name, avatarUrl, initials, status, score, metadata
     <Card padding="default" hoverable={!!onClick} onClick={onClick} className={cn('flex flex-col gap-4', className)}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <Avatar src={avatarUrl} fallback={initials || name.charAt(0)} size="lg" />
+          <Avatar name={name} size="lg" />
           <div>
             <h4 className="font-semibold text-slate-900 text-base">{name}</h4>
             {status && <div className="mt-0.5">{status}</div>}
